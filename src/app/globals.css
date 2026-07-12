@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ecfaf6;
+  --foreground: #134e4a;
+  --teal: #0f766e;
+  --orange: #ea580c;
+  --sky: #e0f2fe;
+  --sand: #fff7ed;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #fff7ed 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #ccfbf1 0%, transparent 50%),
+    linear-gradient(180deg, #f0fdfa 0%, #ecfeff 45%, #fff7ed 100%);
+  color: var(--foreground);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  min-height: 100%;
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-body), sans-serif;
+}
+
+.kampung-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.45;
+  animation: drift 14s ease-in-out infinite;
+}
+
+.kampung-orb-a {
+  top: 8%;
+  right: -6%;
+  width: 220px;
+  height: 220px;
+  background: #fdba74;
+}
+
+.kampung-orb-b {
+  bottom: 18%;
+  left: -8%;
+  width: 260px;
+  height: 260px;
+  background: #5eead4;
+  animation-delay: -5s;
+}
+
+.kampung-pattern {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image: radial-gradient(#0f766e 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, #000 20%, transparent 85%);
+}
+
+.star-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  padding: 0.45rem 0.8rem;
+  font-weight: 800;
+  color: #c2410c;
+  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.12);
+}
+
+.animate-rise {
+  animation: rise 0.55s ease both;
+}
+
+.animate-float {
+  animation: floaty 3.2s ease-in-out infinite;
+}
+
+.animate-pop {
+  animation: pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-18px, 12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-float,
+  .animate-pop,
+  .kampung-orb {
+    animation: none;
+  }
+}
