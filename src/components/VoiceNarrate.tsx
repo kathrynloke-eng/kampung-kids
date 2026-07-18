@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { Locale } from "@/i18n/locales";
 import { useI18n } from "@/i18n/provider";
 
@@ -35,6 +35,16 @@ const speechLang: Record<Locale, string> = {
   ta: "ta-IN",
 };
 
+const subscribeToVoiceSupport = () => () => {};
+
+function getVoiceSupport() {
+  return Boolean(
+    window.SpeechRecognition ||
+      window.webkitSpeechRecognition ||
+      navigator.mediaDevices?.getUserMedia,
+  );
+}
+
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -49,52 +59,74 @@ export function VoiceNarrate({
   audioDataUrl,
   onTranscript,
   onAudio,
+  onBusyChange,
 }: {
   transcript: string;
   audioDataUrl: string;
   onTranscript: (text: string) => void;
   onAudio: (dataUrl: string) => void;
+  onBusyChange: (busy: boolean) => void;
 }) {
   const { t, locale } = useI18n();
-  const [listening, setListening] = useState(false);
-  const [supported, setSupported] = useState(true);
+  const supported = useSyncExternalStore(
+    subscribeToVoiceSupport,
+    getVoiceSupport,
+    () => false,
+  );
+  const [recording, setRecording] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [captureUnavailable, setCaptureUnavailable] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  useEffect(() => {
-    const Speech =
-      typeof window !== "undefined"
-        ? window.SpeechRecognition || window.webkitSpeechRecognition
-        : undefined;
-    setSupported(Boolean(Speech) || Boolean(navigator.mediaDevices?.getUserMedia));
-    return () => {
-      stopAll();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const stopAll = () => {
-    recognitionRef.current?.stop();
-    if (mediaRecorderRef.current?.state === "recording") {
-      mediaRecorderRef.current.stop();
-    }
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+  const clearTimer = useCallback(() => {
     if (timerRef.current) {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    setListening(false);
-  };
+  }, []);
+
+  const stop = useCallback(() => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    clearTimer();
+    setRecording(false);
+
+    const recorder = mediaRecorderRef.current;
+    if (recorder?.state === "recording") {
+      setProcessing(true);
+      onBusyChange(true);
+      recorder.stop();
+      return;
+    }
+
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    onBusyChange(false);
+  }, [clearTimer, onBusyChange]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort();
+      if (mediaRecorderRef.current?.state === "recording") {
+        mediaRecorderRef.current.stop();
+      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      clearTimer();
+    };
+  }, [clearTimer]);
 
   const start = async () => {
     onTranscript("");
     onAudio("");
+    onBusyChange(true);
     setSeconds(0);
+    setCaptureUnavailable(false);
+    setRecording(true);
 
     const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (Speech) {
@@ -116,13 +148,14 @@ export function VoiceNarrate({
         onTranscript(`${finalText} ${interim}`.trim());
       };
       recognition.onerror = () => {
-        setListening(false);
-      };
-      recognition.onend = () => {
-        setListening(false);
+        // Audio capture can still succeed when browser transcription is unavailable.
       };
       recognitionRef.current = recognition;
-      recognition.start();
+      try {
+        recognition.start();
+      } catch {
+        recognitionRef.current = null;
+      }
     }
 
     try {
@@ -130,40 +163,48 @@ export function VoiceNarrate({
       streamRef.current = stream;
       const recorder = new MediaRecorder(stream);
       chunksRef.current = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data);
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) chunksRef.current.push(event.data);
       };
       recorder.onstop = async () => {
-        const blob = new Blob(chunksRef.current, {
-          type: recorder.mimeType || "audio/webm",
-        });
-        if (blob.size > 0 && blob.size < 1_200_000) {
-          onAudio(await blobToDataUrl(blob));
+        try {
+          const blob = new Blob(chunksRef.current, {
+            type: recorder.mimeType || "audio/webm",
+          });
+          if (blob.size > 0 && blob.size < 1_200_000) {
+            onAudio(await blobToDataUrl(blob));
+          }
+        } finally {
+          stream.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+          mediaRecorderRef.current = null;
+          setProcessing(false);
+          onBusyChange(false);
         }
-        stream.getTracks().forEach((track) => track.stop());
       };
       mediaRecorderRef.current = recorder;
       recorder.start();
     } catch {
       if (!Speech) {
-        setSupported(false);
+        setRecording(false);
+        setCaptureUnavailable(true);
+        onBusyChange(false);
         return;
       }
     }
 
-    setListening(true);
     timerRef.current = window.setInterval(() => {
-      setSeconds((s) => {
-        if (s >= 29) {
-          stopAll();
+      setSeconds((current) => {
+        if (current >= 29) {
+          stop();
           return 30;
         }
-        return s + 1;
+        return current + 1;
       });
     }, 1000);
   };
 
-  if (!supported) {
+  if (!supported || captureUnavailable) {
     return (
       <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
         {t("speakUnsupported")}
@@ -174,46 +215,37 @@ export function VoiceNarrate({
   return (
     <div className="space-y-4">
       <p className="text-sm font-extrabold text-teal-900">
-        {listening ? t("speakListening") : t("speakTap")}
+        {processing ? t("speakSaving") : recording ? t("speakListening") : t("speakTap")}
       </p>
 
       <div className="flex flex-col items-center gap-3 rounded-[1.75rem] bg-gradient-to-b from-teal-50 to-cyan-50 px-4 py-6">
         <button
           type="button"
-          onClick={() => (listening ? stopAll() : void start())}
-          className={`flex h-28 w-28 items-center justify-center rounded-full text-4xl text-white shadow-lg transition active:scale-95 ${
-            listening
-              ? "animate-pulse bg-rose-500 shadow-rose-500/30"
-              : "bg-teal-600 shadow-teal-600/30"
+          onClick={recording ? stop : () => void start()}
+          disabled={processing}
+          className={`flex h-28 w-28 items-center justify-center rounded-full text-4xl text-white shadow-lg transition active:scale-95 disabled:cursor-wait disabled:opacity-70 ${
+            recording ? "animate-pulse bg-rose-500 shadow-rose-500/30" : "bg-teal-600 shadow-teal-600/30"
           }`}
-          aria-pressed={listening}
+          aria-pressed={recording}
         >
-          {listening ? "⏹" : "🎤"}
+          {processing ? "⏳" : recording ? "⏹" : "🎤"}
         </button>
         <p className="font-display text-lg text-teal-900">
-          {listening ? t("speakStop") : transcript || audioDataUrl ? t("speakAgain") : t("proofModeSpeak")}
+          {processing ? t("speakSaving") : recording ? t("speakStop") : transcript || audioDataUrl ? t("speakAgain") : t("proofModeSpeak")}
         </p>
-        {listening ? (
-          <p className="text-xs font-bold text-teal-700">{seconds}s / 30s</p>
-        ) : null}
+        {recording ? <p className="text-xs font-bold text-teal-700">{seconds}s / 30s</p> : null}
       </div>
 
       {transcript ? (
         <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-teal-900/10">
-          <p className="text-xs font-extrabold uppercase tracking-wide text-orange-600">
-            {t("heardYouSay")}
-          </p>
-          <p className="mt-1 text-sm font-semibold leading-relaxed text-slate-700">
-            {transcript}
-          </p>
+          <p className="text-xs font-extrabold uppercase tracking-wide text-orange-600">{t("heardYouSay")}</p>
+          <p className="mt-1 text-sm font-semibold leading-relaxed text-slate-700">{transcript}</p>
         </div>
       ) : null}
 
       {audioDataUrl ? (
         <div className="space-y-1">
-          <p className="text-xs font-extrabold uppercase tracking-wide text-teal-700">
-            {t("yourVoice")}
-          </p>
+          <p className="text-xs font-extrabold uppercase tracking-wide text-teal-700">{t("yourVoice")}</p>
           <audio controls src={audioDataUrl} className="w-full" />
         </div>
       ) : null}

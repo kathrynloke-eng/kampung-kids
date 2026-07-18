@@ -168,6 +168,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [remoteLoaded, setRemoteLoaded] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- browser storage initializes client progress after hydration.
     setState(loadState());
     setHydrated(true);
   }, []);
@@ -175,6 +176,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isAuthenticated || remoteProgress === undefined || remoteLoaded) return;
     if (remoteProgress?.state) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the authenticated remote snapshot replaces the local migration fallback once.
       setState(normalizeState(remoteProgress.state as ProgressState));
     }
     setRemoteLoaded(true);

@@ -33,6 +33,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- local storage is the client-side locale source of truth after hydration.
       if (saved && isLocale(saved)) setLocaleState(saved);
     } catch {
       /* ignore */

@@ -32,12 +32,14 @@ function MediaForm({
   const [audioDataUrl, setAudioDataUrl] = useState("");
   const [drawingDataUrl, setDrawingDataUrl] = useState("");
   const [error, setError] = useState("");
+  const [voiceBusy, setVoiceBusy] = useState(false);
 
   return (
     <form
       className="space-y-4 rounded-[1.85rem] bg-white/95 p-5 shadow-[0_16px_40px_rgba(15,118,110,0.1)] outline outline-2 outline-white"
       onSubmit={(e) => {
         e.preventDefault();
+        if (voiceBusy) return;
         const err = onSubmit({ transcript, drawingDataUrl, audioDataUrl });
         if (err) {
           setError(err);
@@ -66,7 +68,10 @@ function MediaForm({
           <button
             key={option.id}
             type="button"
-            onClick={() => setTab(option.id)}
+            onClick={() => {
+              setTab(option.id);
+              if (option.id === "draw") setVoiceBusy(false);
+            }}
             className={`rounded-xl px-3 py-3 text-sm font-extrabold transition ${
               tab === option.id
                 ? "bg-white text-teal-900 shadow"
@@ -85,6 +90,7 @@ function MediaForm({
           audioDataUrl={audioDataUrl}
           onTranscript={setTranscript}
           onAudio={setAudioDataUrl}
+          onBusyChange={setVoiceBusy}
         />
       ) : (
         <DrawPad value={drawingDataUrl} onChange={setDrawingDataUrl} />
@@ -96,8 +102,12 @@ function MediaForm({
         </p>
       ) : null}
 
-      <button type="submit" className="kid-btn kid-btn-primary w-full text-base">
-        {submitLabel}
+      <button
+        type="submit"
+        disabled={voiceBusy}
+        className="kid-btn kid-btn-primary w-full text-base disabled:cursor-wait disabled:opacity-70"
+      >
+        {voiceBusy ? t("speakSaving") : submitLabel}
       </button>
     </form>
   );
