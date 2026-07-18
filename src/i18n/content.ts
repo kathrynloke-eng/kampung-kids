@@ -6,6 +6,7 @@ import {
   lessons,
   missions,
 } from "@/data/content";
+import { extraLessonOverlay } from "@/i18n/content-extra";
 import type { Locale } from "@/i18n/locales";
 import type { Badge, Lesson, Mission } from "@/lib/types";
 
@@ -573,7 +574,9 @@ function badgeOverlay(locale: Locale) {
 }
 
 export function localizeLesson(lesson: Lesson, locale: Locale): Lesson {
-  const overlay = lessonOverlay(locale)?.[lesson.id];
+  const overlay =
+    lessonOverlay(locale)?.[lesson.id] ??
+    extraLessonOverlay(locale)?.[lesson.id];
   return overlay ? { ...lesson, ...overlay } : lesson;
 }
 

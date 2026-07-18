@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { ProofMedia } from "@/components/ProofMedia";
 import { getLocalizedMission } from "@/i18n/content";
 import { useI18n } from "@/i18n/provider";
-import type { GrownupRole } from "@/lib/types";
+import type { GrownupRole, RewardItem } from "@/lib/types";
 import { useProgress } from "@/lib/progress";
 
 export default function GrownupsPage() {
@@ -12,12 +13,19 @@ export default function GrownupsPage() {
   const {
     state,
     hydrated,
+    streak,
     pendingProofs,
     approvedProofs,
+    recentPractice,
+    pendingRedemptions,
     approveProof,
     rejectProof,
     verifyPin,
     changePin,
+    fulfillRedemption,
+    cancelRedemption,
+    upsertReward,
+    toggleReward,
   } = useProgress();
 
   const [unlocked, setUnlocked] = useState(false);
@@ -26,6 +34,9 @@ export default function GrownupsPage() {
   const [role, setRole] = useState<GrownupRole>("parent");
   const [newPin, setNewPin] = useState("");
   const [pinMessage, setPinMessage] = useState("");
+  const [customTitle, setCustomTitle] = useState("");
+  const [customCost, setCustomCost] = useState("5");
+  const [customEmoji, setCustomEmoji] = useState("🎁");
 
   const ageLabel = useMemo(() => {
     if (!state.profile) return "";
@@ -177,9 +188,86 @@ export default function GrownupsPage() {
                 {state.earnedBadges.length}
               </p>
             </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                {t("streakDays")}
+              </p>
+              <p className="font-display text-xl text-teal-950">{streak}</p>
+            </div>
           </div>
         ) : (
           <p className="mt-2 text-sm text-slate-600">{t("noChildYet")}</p>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-display text-2xl text-teal-950">{t("waitingTreats")}</h2>
+        {pendingRedemptions.length === 0 ? (
+          <p className="rounded-2xl bg-white/80 px-4 py-5 text-sm text-slate-600 ring-1 ring-teal-900/5">
+            {t("noPending")}
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {pendingRedemptions.map((item) => (
+              <li
+                key={item.id}
+                className="rounded-[1.75rem] bg-white/90 p-5 ring-1 ring-teal-900/5"
+              >
+                <p className="font-display text-xl text-teal-950">
+                  <span aria-hidden>{item.emoji} </span>
+                  {item.title}
+                </p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-orange-600">
+                  ★ {item.cost} · {t("pendingProof")}
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fulfillRedemption(item.id)}
+                    className="rounded-2xl bg-teal-700 px-4 py-2.5 text-sm font-bold text-white"
+                  >
+                    {t("fulfillTreat")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => cancelRedemption(item.id)}
+                    className="rounded-2xl bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-800"
+                  >
+                    {t("refundTreat")}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-display text-2xl text-teal-950">{t("practiceLogTitle")}</h2>
+        {recentPractice.length === 0 ? (
+          <p className="rounded-2xl bg-white/80 px-4 py-5 text-sm text-slate-600 ring-1 ring-teal-900/5">
+            {t("noPracticeYet")}
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {recentPractice.map((entry) => {
+              const mission = getLocalizedMission(entry.missionId, locale);
+              return (
+                <li
+                  key={entry.id}
+                  className="rounded-2xl bg-white/85 p-4 text-sm ring-1 ring-teal-900/5"
+                >
+                  <p className="font-bold text-teal-900">
+                    {mission?.title ?? entry.missionId}
+                  </p>
+                  <p className="text-xs text-slate-500">{entry.dateKey}</p>
+                  {entry.note ? (
+                    <p className="mt-1 text-slate-600">{entry.note}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
         )}
       </section>
 
@@ -205,9 +293,7 @@ export default function GrownupsPage() {
                     {t("pendingProof")}
                     {mission ? ` · ★ ${mission.stars}` : ""}
                   </p>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                    {proof.note}
-                  </p>
+                  <ProofMedia proof={proof} />
                   <p className="mt-2 text-xs text-slate-400">
                     {new Date(proof.submittedAt).toLocaleString()}
                   </p>
@@ -254,13 +340,81 @@ export default function GrownupsPage() {
                       ? ` · ${proof.reviewedBy === "teacher" ? t("roleTeacher") : t("roleParent")}`
                       : ""}
                   </p>
-                  <p className="mt-1 text-slate-600">{proof.note}</p>
+                  <ProofMedia proof={proof} />
                 </li>
               );
             })}
           </ul>
         </section>
       ) : null}
+
+      <section className="space-y-3 rounded-[1.75rem] bg-white/90 p-5 ring-1 ring-teal-900/5">
+        <h2 className="font-display text-xl text-teal-900">{t("manageTreats")}</h2>
+        <ul className="space-y-2">
+          {state.rewards.map((reward) => (
+            <li
+              key={reward.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-teal-50/60 px-3 py-2"
+            >
+              <span className="text-sm font-bold text-teal-900">
+                {reward.emoji} {reward.title} · ★{reward.cost}
+              </span>
+              <button
+                type="button"
+                onClick={() => toggleReward(reward.id, !reward.enabled)}
+                className="rounded-xl bg-white px-3 py-1.5 text-xs font-extrabold text-teal-800"
+              >
+                {reward.enabled ? t("earned") : t("locked")}
+              </button>
+            </li>
+          ))}
+        </ul>
+        <form
+          className="mt-3 grid gap-2 sm:grid-cols-[auto_1fr_auto_auto]"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const cost = Number(customCost);
+            if (!customTitle.trim() || !Number.isFinite(cost) || cost < 1) return;
+            const reward: RewardItem = {
+              id: `custom-${Date.now()}`,
+              title: customTitle.trim(),
+              description: customTitle.trim(),
+              cost: Math.round(cost),
+              emoji: customEmoji || "🎁",
+              enabled: true,
+              custom: true,
+            };
+            upsertReward(reward);
+            setCustomTitle("");
+            setCustomCost("5");
+          }}
+        >
+          <input
+            value={customEmoji}
+            onChange={(e) => setCustomEmoji(e.target.value.slice(0, 2))}
+            className="w-14 rounded-xl border border-teal-900/10 px-2 py-2 text-center"
+            aria-label="emoji"
+          />
+          <input
+            value={customTitle}
+            onChange={(e) => setCustomTitle(e.target.value)}
+            placeholder={t("treatName")}
+            className="rounded-xl border border-teal-900/10 px-3 py-2 text-sm"
+          />
+          <input
+            value={customCost}
+            onChange={(e) => setCustomCost(e.target.value.replace(/\D/g, ""))}
+            placeholder={t("treatCost")}
+            className="w-20 rounded-xl border border-teal-900/10 px-3 py-2 text-sm"
+          />
+          <button
+            type="submit"
+            className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-extrabold text-white"
+          >
+            {t("addTreat")}
+          </button>
+        </form>
+      </section>
 
       <section className="space-y-3 rounded-[1.75rem] bg-white/90 p-5 ring-1 ring-teal-900/5">
         <h2 className="font-display text-xl text-teal-900">{t("changePin")}</h2>

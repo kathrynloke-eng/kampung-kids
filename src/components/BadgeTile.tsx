@@ -14,26 +14,32 @@ export function BadgeTile({
 
   return (
     <div
-      className={`animate-rise rounded-[1.5rem] p-4 text-center ring-1 transition ${
+      className={`animate-rise rounded-[1.6rem] p-4 text-center outline outline-2 transition ${
         earned
-          ? "bg-white/90 ring-orange-200 shadow-[0_12px_30px_rgba(234,88,12,0.12)]"
-          : "bg-white/40 ring-slate-200/80 opacity-60 grayscale"
+          ? "bg-gradient-to-b from-amber-50 to-orange-50 outline-amber-200 shadow-[0_14px_30px_rgba(234,88,12,0.14)]"
+          : "bg-white/50 outline-slate-200/80 opacity-55 grayscale"
       }`}
     >
       <div
-        className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl text-2xl ${
-          earned ? "animate-float bg-orange-50" : "bg-slate-100"
+        className={`mx-auto flex h-16 w-16 items-center justify-center rounded-[1.25rem] text-3xl ${
+          earned
+            ? "animate-float bg-gradient-to-br from-amber-200 to-orange-300 shadow-inner"
+            : "bg-slate-100"
         }`}
         aria-hidden
       >
         {badge.icon}
       </div>
       <h3 className="mt-3 font-display text-base text-teal-950">{badge.name}</h3>
-      <p className="mt-1 text-xs leading-relaxed text-slate-600">
+      <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">
         {badge.description}
       </p>
-      <p className="mt-2 text-[11px] font-bold uppercase tracking-wide text-orange-600">
-        {earned ? t("earned") : t("locked")}
+      <p
+        className={`mt-2 text-[11px] font-extrabold uppercase tracking-wide ${
+          earned ? "text-orange-600" : "text-slate-400"
+        }`}
+      >
+        {earned ? `★ ${t("earned")}` : t("locked")}
       </p>
     </div>
   );

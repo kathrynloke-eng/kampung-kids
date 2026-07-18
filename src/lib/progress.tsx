@@ -9,13 +9,20 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useConvexAuth, useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import { getMission } from "@/data/content";
+import { defaultRewards } from "@/data/rewards";
+import { calcStreak, dateKey } from "@/lib/dates";
 import type {
   AgeBand,
   ChildProfile,
   GrownupRole,
   MissionProof,
+  PracticeEntry,
   ProgressState,
+  RewardItem,
+  RewardRedemption,
 } from "@/lib/types";
 
 const STORAGE_KEY = "kampung-kids-progress-v2";
@@ -27,6 +34,10 @@ const defaultState: ProgressState = {
   earnedBadges: [],
   totalStars: 0,
   parentPin: "1234",
+  practiceDates: [],
+  practiceEntries: [],
+  rewards: defaultRewards,
+  redemptions: [],
 };
 
 function normalizeProof(proof: MissionProof): MissionProof {
@@ -37,23 +48,72 @@ function normalizeProof(proof: MissionProof): MissionProof {
   };
 }
 
+function withPracticeDay(
+  prev: ProgressState,
+  when = new Date(),
+): ProgressState {
+  const key = dateKey(when);
+  if (prev.practiceDates.includes(key)) return prev;
+  return {
+    ...prev,
+    practiceDates: [...prev.practiceDates, key],
+  };
+}
+
 function normalizeState(raw: ProgressState): ProgressState {
+  const savedRewards = raw.rewards?.length ? raw.rewards : defaultRewards;
+  const knownIds = new Set(savedRewards.map((r) => r.id));
+  const mergedRewards = [
+    ...savedRewards,
+    ...defaultRewards.filter((r) => !knownIds.has(r.id)),
+  ];
   return {
     ...defaultState,
     ...raw,
     proofs: (raw.proofs ?? []).map(normalizeProof),
+    practiceDates: raw.practiceDates ?? [],
+    practiceEntries: raw.practiceEntries ?? [],
+    rewards: mergedRewards,
+    redemptions: raw.redemptions ?? [],
   };
 }
 
 type ProgressContextValue = {
   state: ProgressState;
   hydrated: boolean;
+  streak: number;
+  practicedToday: boolean;
   setProfile: (name: string, ageBand: AgeBand) => void;
   completeLesson: (lessonId: string) => void;
   submitProof: (input: {
     missionId: string;
-    note: string;
-  }) => { ok: true } | { ok: false; errorKey: "errorEmptyNote" | "errorAlready" | "errorNotFound" };
+    note?: string;
+    transcript?: string;
+    drawingDataUrl?: string;
+    audioDataUrl?: string;
+  }) =>
+    | { ok: true }
+    | {
+        ok: false;
+        errorKey: "errorEmptyProof" | "errorAlready" | "errorNotFound";
+      };
+  logPractice: (input: {
+    missionId: string;
+    note?: string;
+    transcript?: string;
+    drawingDataUrl?: string;
+    audioDataUrl?: string;
+  }) =>
+    | { ok: true }
+    | {
+        ok: false;
+        errorKey:
+          | "errorEmptyProof"
+          | "errorAlready"
+          | "errorNotFound"
+          | "errorNeedApproveFirst"
+          | "errorPracticedToday";
+      };
   approveProof: (
     missionId: string,
     role: GrownupRole,
@@ -68,6 +128,17 @@ type ProgressContextValue = {
   hasBadge: (badgeId: string) => boolean;
   pendingProofs: MissionProof[];
   approvedProofs: MissionProof[];
+  recentPractice: PracticeEntry[];
+  pendingRedemptions: RewardRedemption[];
+  requestReward: (
+    rewardId: string,
+  ) =>
+    | { ok: true }
+    | { ok: false; errorKey: "errorNotFound" | "errorCannotAfford" | "errorRewardDisabled" };
+  fulfillRedemption: (redemptionId: string) => void;
+  cancelRedemption: (redemptionId: string) => void;
+  upsertReward: (reward: RewardItem) => void;
+  toggleReward: (rewardId: string, enabled: boolean) => void;
 };
 
 const ProgressContext = createContext<ProgressContextValue | null>(null);
@@ -88,6 +159,13 @@ function loadState(): ProgressState {
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<ProgressState>(defaultState);
   const [hydrated, setHydrated] = useState(false);
+  const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
+  const remoteProgress = useQuery(
+    api.progress.getMine,
+    isAuthenticated ? {} : "skip",
+  );
+  const saveRemoteProgress = useMutation(api.progress.saveMine);
+  const [remoteLoaded, setRemoteLoaded] = useState(false);
 
   useEffect(() => {
     setState(loadState());
@@ -95,9 +173,22 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (!isAuthenticated || remoteProgress === undefined || remoteLoaded) return;
+    if (remoteProgress?.state) {
+      setState(normalizeState(remoteProgress.state as ProgressState));
+    }
+    setRemoteLoaded(true);
+  }, [isAuthenticated, remoteLoaded, remoteProgress]);
+
+  useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }, [state, hydrated]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !remoteLoaded) return;
+    void saveRemoteProgress({ state });
+  }, [isAuthenticated, remoteLoaded, saveRemoteProgress, state]);
 
   const setProfile = useCallback((name: string, ageBand: AgeBand) => {
     const profile: ChildProfile = {
@@ -110,16 +201,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const completeLesson = useCallback((lessonId: string) => {
     setState((prev) => {
-      if (prev.completedLessons.includes(lessonId)) return prev;
+      const next = withPracticeDay(prev);
+      if (next.completedLessons.includes(lessonId)) return next;
       return {
-        ...prev,
-        completedLessons: [...prev.completedLessons, lessonId],
+        ...next,
+        completedLessons: [...next.completedLessons, lessonId],
       };
     });
   }, []);
 
   const submitProof = useCallback(
-    (input: { missionId: string; note: string }) => {
+    (input: {
+      missionId: string;
+      note?: string;
+      transcript?: string;
+      drawingDataUrl?: string;
+      audioDataUrl?: string;
+    }) => {
       const mission = getMission(input.missionId);
       if (!mission) {
         return { ok: false as const, errorKey: "errorNotFound" as const };
@@ -130,33 +228,122 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         return { ok: false as const, errorKey: "errorAlready" as const };
       }
 
-      if (!input.note.trim()) {
-        return { ok: false as const, errorKey: "errorEmptyNote" as const };
+      const transcript = (input.transcript ?? "").trim();
+      const note = (input.note ?? transcript).trim();
+      const drawingDataUrl = input.drawingDataUrl?.startsWith("data:")
+        ? input.drawingDataUrl
+        : undefined;
+      const audioDataUrl = input.audioDataUrl?.startsWith("data:")
+        ? input.audioDataUrl
+        : undefined;
+
+      if (!note && !drawingDataUrl && !audioDataUrl) {
+        return { ok: false as const, errorKey: "errorEmptyProof" as const };
       }
 
       const proof: MissionProof = {
         missionId: input.missionId,
-        note: input.note.trim(),
+        note,
+        transcript: transcript || undefined,
+        drawingDataUrl,
+        audioDataUrl,
         submittedAt: new Date().toISOString(),
         status: "pending",
         parentConfirmed: false,
         starsEarned: 0,
       };
 
-      setState((prev) => ({
-        ...prev,
-        proofs: [
-          ...prev.proofs.filter((p) => p.missionId !== input.missionId),
-          proof,
-        ],
-        completedLessons: prev.completedLessons.includes(mission.lessonId)
-          ? prev.completedLessons
-          : [...prev.completedLessons, mission.lessonId],
-      }));
+      setState((prev) => {
+        const next = withPracticeDay(prev);
+        return {
+          ...next,
+          proofs: [
+            ...next.proofs.filter((p) => p.missionId !== input.missionId),
+            proof,
+          ],
+          completedLessons: next.completedLessons.includes(mission.lessonId)
+            ? next.completedLessons
+            : [...next.completedLessons, mission.lessonId],
+        };
+      });
 
       return { ok: true as const };
     },
     [state.proofs],
+  );
+
+  const logPractice = useCallback(
+    (input: {
+      missionId: string;
+      note?: string;
+      transcript?: string;
+      drawingDataUrl?: string;
+      audioDataUrl?: string;
+    }) => {
+      const mission = getMission(input.missionId);
+      if (!mission) {
+        return { ok: false as const, errorKey: "errorNotFound" as const };
+      }
+
+      const approved = state.proofs.some(
+        (p) => p.missionId === input.missionId && p.status === "approved",
+      );
+      if (!approved) {
+        return {
+          ok: false as const,
+          errorKey: "errorNeedApproveFirst" as const,
+        };
+      }
+
+      const today = dateKey();
+      if (
+        state.practiceEntries.some(
+          (e) => e.missionId === input.missionId && e.dateKey === today,
+        )
+      ) {
+        return {
+          ok: false as const,
+          errorKey: "errorPracticedToday" as const,
+        };
+      }
+
+      const transcript = (input.transcript ?? "").trim();
+      const note = (input.note ?? transcript).trim();
+      const drawingDataUrl = input.drawingDataUrl?.startsWith("data:")
+        ? input.drawingDataUrl
+        : undefined;
+      const audioDataUrl = input.audioDataUrl?.startsWith("data:")
+        ? input.audioDataUrl
+        : undefined;
+
+      if (!note && !drawingDataUrl && !audioDataUrl) {
+        return { ok: false as const, errorKey: "errorEmptyProof" as const };
+      }
+
+      const entry: PracticeEntry = {
+        id: `${input.missionId}-${today}-${Date.now()}`,
+        missionId: input.missionId,
+        lessonId: mission.lessonId,
+        submittedAt: new Date().toISOString(),
+        dateKey: today,
+        note,
+        transcript: transcript || undefined,
+        drawingDataUrl,
+        audioDataUrl,
+      };
+
+      setState((prev) => {
+        const next = withPracticeDay(prev);
+        return {
+          ...next,
+          practiceEntries: [...next.practiceEntries, entry],
+          totalStars: next.totalStars + 1,
+        };
+      });
+
+      return { ok: true as const };
+    },
+    [state.proofs, state.practiceEntries],
   );
 
   const approveProof = useCallback(
@@ -169,25 +356,28 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         return { ok: false as const, error: "No pending proof." };
       }
 
-      setState((prev) => ({
-        ...prev,
-        proofs: prev.proofs.map((p) =>
-          p.missionId === missionId
-            ? {
-                ...p,
-                status: "approved" as const,
-                parentConfirmed: true,
-                starsEarned: mission.stars,
-                reviewedAt: new Date().toISOString(),
-                reviewedBy: role,
-              }
-            : p,
-        ),
-        totalStars: prev.totalStars + mission.stars,
-        earnedBadges: prev.earnedBadges.includes(mission.badgeId)
-          ? prev.earnedBadges
-          : [...prev.earnedBadges, mission.badgeId],
-      }));
+      setState((prev) => {
+        const next = withPracticeDay(prev);
+        return {
+          ...next,
+          proofs: next.proofs.map((p) =>
+            p.missionId === missionId
+              ? {
+                  ...p,
+                  status: "approved" as const,
+                  parentConfirmed: true,
+                  starsEarned: mission.stars,
+                  reviewedAt: new Date().toISOString(),
+                  reviewedBy: role,
+                }
+              : p,
+          ),
+          totalStars: next.totalStars + mission.stars,
+          earnedBadges: next.earnedBadges.includes(mission.badgeId)
+            ? next.earnedBadges
+            : [...next.earnedBadges, mission.badgeId],
+        };
+      });
 
       return { ok: true as const };
     },
@@ -229,6 +419,89 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("kampung-kids-progress-v1");
   }, []);
 
+  const requestReward = useCallback(
+    (rewardId: string) => {
+      const reward = state.rewards.find((r) => r.id === rewardId);
+      if (!reward) {
+        return { ok: false as const, errorKey: "errorNotFound" as const };
+      }
+      if (!reward.enabled) {
+        return { ok: false as const, errorKey: "errorRewardDisabled" as const };
+      }
+      if (state.totalStars < reward.cost) {
+        return { ok: false as const, errorKey: "errorCannotAfford" as const };
+      }
+      const redemption: RewardRedemption = {
+        id: `redeem-${rewardId}-${Date.now()}`,
+        rewardId: reward.id,
+        title: reward.title,
+        emoji: reward.emoji,
+        cost: reward.cost,
+        status: "pending",
+        requestedAt: new Date().toISOString(),
+      };
+      setState((prev) => ({
+        ...prev,
+        totalStars: prev.totalStars - reward.cost,
+        redemptions: [...prev.redemptions, redemption],
+      }));
+      return { ok: true as const };
+    },
+    [state.rewards, state.totalStars],
+  );
+
+  const fulfillRedemption = useCallback((redemptionId: string) => {
+    setState((prev) => ({
+      ...prev,
+      redemptions: prev.redemptions.map((r) =>
+        r.id === redemptionId
+          ? {
+              ...r,
+              status: "fulfilled" as const,
+              fulfilledAt: new Date().toISOString(),
+            }
+          : r,
+      ),
+    }));
+  }, []);
+
+  const cancelRedemption = useCallback((redemptionId: string) => {
+    setState((prev) => {
+      const target = prev.redemptions.find((r) => r.id === redemptionId);
+      if (!target || target.status !== "pending") return prev;
+      return {
+        ...prev,
+        totalStars: prev.totalStars + target.cost,
+        redemptions: prev.redemptions.map((r) =>
+          r.id === redemptionId
+            ? { ...r, status: "cancelled" as const }
+            : r,
+        ),
+      };
+    });
+  }, []);
+
+  const upsertReward = useCallback((reward: RewardItem) => {
+    setState((prev) => {
+      const exists = prev.rewards.some((r) => r.id === reward.id);
+      return {
+        ...prev,
+        rewards: exists
+          ? prev.rewards.map((r) => (r.id === reward.id ? reward : r))
+          : [...prev.rewards, reward],
+      };
+    });
+  }, []);
+
+  const toggleReward = useCallback((rewardId: string, enabled: boolean) => {
+    setState((prev) => ({
+      ...prev,
+      rewards: prev.rewards.map((r) =>
+        r.id === rewardId ? { ...r, enabled } : r,
+      ),
+    }));
+  }, []);
+
   const pendingProofs = useMemo(
     () => state.proofs.filter((p) => p.status === "pending"),
     [state.proofs],
@@ -239,18 +512,46 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [state.proofs],
   );
 
+  const streak = useMemo(
+    () => calcStreak(state.practiceDates),
+    [state.practiceDates],
+  );
+
+  const practicedTodayFlag = useMemo(
+    () => state.practiceDates.includes(dateKey()),
+    [state.practiceDates],
+  );
+
+  const recentPractice = useMemo(
+    () => [...state.practiceEntries].reverse().slice(0, 8),
+    [state.practiceEntries],
+  );
+
+  const pendingRedemptions = useMemo(
+    () => state.redemptions.filter((r) => r.status === "pending"),
+    [state.redemptions],
+  );
+
   const value = useMemo<ProgressContextValue>(
     () => ({
       state,
-      hydrated,
+      hydrated: hydrated && !authLoading && (!isAuthenticated || remoteLoaded),
+      streak,
+      practicedToday: practicedTodayFlag,
       setProfile,
       completeLesson,
       submitProof,
+      logPractice,
       approveProof,
       rejectProof,
       changePin,
       verifyPin,
       resetProgress,
+      requestReward,
+      fulfillRedemption,
+      cancelRedemption,
+      upsertReward,
+      toggleReward,
       isLessonComplete: (lessonId) => state.completedLessons.includes(lessonId),
       isMissionApproved: (missionId) =>
         state.proofs.some(
@@ -263,20 +564,32 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       hasBadge: (badgeId) => state.earnedBadges.includes(badgeId),
       pendingProofs,
       approvedProofs,
+      recentPractice,
+      pendingRedemptions,
     }),
     [
       state,
       hydrated,
+      streak,
+      practicedTodayFlag,
       setProfile,
       completeLesson,
       submitProof,
+      logPractice,
       approveProof,
       rejectProof,
       changePin,
       verifyPin,
       resetProgress,
+      requestReward,
+      fulfillRedemption,
+      cancelRedemption,
+      upsertReward,
+      toggleReward,
       pendingProofs,
       approvedProofs,
+      recentPractice,
+      pendingRedemptions,
     ],
   );
 

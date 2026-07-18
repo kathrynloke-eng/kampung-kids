@@ -1,0 +1,360 @@
+import type { Locale } from "@/i18n/locales";
+import type { Lesson } from "@/lib/types";
+
+type LessonText = Pick<
+  Lesson,
+  "title" | "summary" | "story" | "tryThis" | "reflectionPrompt"
+>;
+
+const zh: Record<string, LessonText> = {
+  "table-manners-sg": {
+    title: "快乐餐桌礼貌",
+    summary: "好好用餐、轮流等待，让吃饭更平和。",
+    story:
+      "在新加坡的家里，吃饭是家人时光。我们洗手、尽量等大家，并向做饭的人说谢谢。不同家庭可能用筷子、汤匙或叉子——重要的是尊重。",
+    tryThis: "在一餐中洗手、礼貌等待，并谢谢做饭的人。",
+    reflectionPrompt: "你如何让用餐更美好？",
+  },
+  "listening-ears": {
+    title: "倾听的耳朵",
+    summary: "好的倾听者会看、会等、会温柔回应。",
+    story: "有倾听耳朵的甘榜孩子面向说话的人，等对方说完再回答。倾听表示尊重。",
+    tryThis: "听家人讲一个故事，一次都不打断。",
+    reflectionPrompt: "你今天认真听了谁说话？",
+  },
+  "neighbour-hello": {
+    title: "邻居的问候",
+    summary: "走廊里一声友善的你好，建立甘榜精神。",
+    story: "邻居可能就在隔壁。走廊微笑或轻声早上好，都能温暖别人。",
+    tryThis: "在大人陪同下礼貌问候邻居。",
+    reflectionPrompt: "你的问候照亮了谁的一天？",
+  },
+  "mid-autumn-share": {
+    title: "中秋分享",
+    summary: "灯笼与月饼提醒我们分享光与善意。",
+    story: "中秋节家人吃月饼、提灯笼。甘榜孩子可以分享甜食，并邀请各族朋友一起欣赏光亮。",
+    tryThis: "这周与别人分享小零食或美好祝愿。",
+    reflectionPrompt: "你如何分享了光或善意？",
+  },
+  "vesak-compassion": {
+    title: "卫塞节的慈悲",
+    summary: "卫塞节教导善良、平静与关爱。",
+    story: "卫塞节纪念佛陀与慈悲。即使不是你的节日，也可以做一件温柔的事。",
+    tryThis: "做一件安静的慈悲行动，不求回报。",
+    reflectionPrompt: "你选择了什么慈悲行动？",
+  },
+  "national-day-pride": {
+    title: "国庆的骄傲",
+    summary: "我们一起庆祝新加坡——多种族，一个家。",
+    story: "国庆日，我们记得不同种族共建新加坡。骄傲意味着关爱家园、尊重每个社群。",
+    tryThis: "告诉家人你爱新加坡的一件事。",
+    reflectionPrompt: "什么让你为我们的国家骄傲？",
+  },
+  "baju-respect": {
+    title: "尊重传统服装",
+    summary: "传统服装值得好奇与尊重，绝不是嘲笑。",
+    story: "Baju kurung、旗袍、纱丽等传统服装带着骄傲。甘榜孩子从不嘲笑穿着。",
+    tryThis: "善意赞美别人的服装，或学习一种传统服装的名字。",
+    reflectionPrompt: "你如何尊重了别人的文化？",
+  },
+  "help-at-home": {
+    title: "家里的小帮手",
+    summary: "不用被吩咐就帮忙，表达爱。",
+    story: "父母很辛苦。甘榜孩子可以收玩具或递水。帮忙在于看见与关心。",
+    tryThis: "主动完成一件家务。",
+    reflectionPrompt: "你在家帮了什么忙？",
+  },
+  "playground-fair": {
+    title: "公平的游乐场",
+    summary: "轮流、包容、安全地玩。",
+    story: "在游乐场轮流玩、邀请孤单的人，乐趣才会增长。",
+    tryThis: "轮流玩或邀请新朋友一起玩。",
+    reflectionPrompt: "你如何公平地玩耍？",
+  },
+  "mrt-kind-seat": {
+    title: "地铁上的善意座位",
+    summary: "把座位让给更需要的人。",
+    story: "公交与地铁的优先座位帮助长者和需要休息的人。让座是移动中的新加坡善意。",
+    tryThis: "礼貌示范如何让座。",
+    reflectionPrompt: "谁可能比你更需要座位？",
+  },
+  "recycle-hero": {
+    title: "回收小英雄",
+    summary: "正确分类垃圾，关爱未来。",
+    story: "蓝色回收箱需要干净干燥的物品。回收英雄会正确分类。",
+    tryThis: "正确回收一件物品。",
+    reflectionPrompt: "你回收了什么？为什么重要？",
+  },
+  "apology-brave": {
+    title: "勇敢的道歉",
+    summary: "真诚说对不起，修复友谊。",
+    story: "勇敢的道歉会说明错了什么、说对不起，并尝试弥补。",
+    tryThis: "若你让某人不高兴，清楚温柔地道歉。",
+    reflectionPrompt: "你的道歉如何帮了忙？",
+  },
+  "speak-up-kindly": {
+    title: "温柔地挺身而出",
+    summary: "为别人发声，自己也不失温柔。",
+    story: "若有人被嘲笑，甘榜勇士温柔地说“请停止”，或请老师帮助。",
+    tryThis: "和大人练习一句温柔挺身的话。",
+    reflectionPrompt: "你何时需要为别人发声？",
+  },
+  "chopsticks-care": {
+    title: "小心使用筷子",
+    summary: "尊重地使用筷子，不指向人或乱戳食物。",
+    story: "不把筷子直立插在饭里，不指向人。还在学也可以礼貌要汤匙。",
+    tryThis: "在一餐中练习小心使用餐具。",
+    reflectionPrompt: "你练习了什么餐桌尊重习惯？",
+  },
+  "library-whisper": {
+    title: "图书馆轻声力量",
+    summary: "轻声帮助每个人一起享受书本。",
+    story: "公共图书馆是宝藏。轻声、轻步、把书放回原位。",
+    tryThis: "在安静共享空间使用轻声力量。",
+    reflectionPrompt: "轻声力量在哪里帮助了别人？",
+  },
+  "team-play-spirit": {
+    title: "团队运动精神",
+    summary: "为队友加油，输赢都有风度。",
+    story: "团队精神是传球、鼓励努力、赛后握手。可以既拼搏又善良。",
+    tryThis: "鼓励队友或赛后说“打得不错”。",
+    reflectionPrompt: "你如何展现了团队精神？",
+  },
+};
+
+const ms: Record<string, LessonText> = {
+  "table-manners-sg": {
+    title: "Adab Meja Bahagia",
+    summary: "Makan dengan sopan dan jaga suasana meja.",
+    story: "Waktu makan adalah masa keluarga. Basuh tangan, tunggu dengan sopan, dan ucap terima kasih.",
+    tryThis: "Dalam satu hidangan, basuh tangan dan berterima kasih kepada yang memasak.",
+    reflectionPrompt: "Bagaimana anda menjadikan waktu makan lebih baik?",
+  },
+  "listening-ears": {
+    title: "Telinga Mendengar",
+    summary: "Pendengar baik menunggu dan membalas lembut.",
+    story: "Anak kampung mendengar hingga siap sebelum menjawab.",
+    tryThis: "Dengar cerita keluarga tanpa menyampuk.",
+    reflectionPrompt: "Siapa yang anda dengar dengan teliti?",
+  },
+  "neighbour-hello": {
+    title: "Salam Jiran",
+    summary: "Hello mesra di koridor bina semangat kampung.",
+    story: "Senyuman atau salam lembut di koridor boleh ceriakan hari seseorang.",
+    tryThis: "Sapa jiran dengan sopan bersama dewasa.",
+    reflectionPrompt: "Hello anda mencerahkan hari siapa?",
+  },
+  "mid-autumn-share": {
+    title: "Kongsi Mid-Autumn",
+    summary: "Tanglung mengajar kita berkongsi cahaya.",
+    story: "Semasa Mid-Autumn, keluarga menikmati kuih bulan dan tanglung bersama.",
+    tryThis: "Kongsi kudapan kecil atau doa baik.",
+    reflectionPrompt: "Bagaimana anda berkongsi kebaikan?",
+  },
+  "vesak-compassion": {
+    title: "Belas Vesak",
+    summary: "Vesak mengajar belas kasihan.",
+    story: "Hari Vesak mengingati belas. Buat satu perbuatan lembut.",
+    tryThis: "Lakukan satu perbuatan belas tanpa ganjaran.",
+    reflectionPrompt: "Perbuatan belas apa yang anda pilih?",
+  },
+  "national-day-pride": {
+    title: "Bangga Hari Kebangsaan",
+    summary: "Raikan Singapura bersama.",
+    story: "Hari Kebangsaan mengingatkan kita tentang rumah bersama pelbagai bangsa.",
+    tryThis: "Kongsi satu perkara yang anda sayang tentang Singapura.",
+    reflectionPrompt: "Apa yang membuat anda bangga?",
+  },
+  "baju-respect": {
+    title: "Hormat Pakaian Tradisional",
+    summary: "Pakaian tradisional jangan diejek.",
+    story: "Baju kurung dan pakaian tradisi lain dipakai dengan bangga.",
+    tryThis: "Puji pakaian seseorang dengan baik.",
+    reflectionPrompt: "Bagaimana anda menghormati budaya?",
+  },
+  "help-at-home": {
+    title: "Pembantu di Rumah",
+    summary: "Bantu tanpa disuruh.",
+    story: "Simpan mainan atau bawa air untuk tunjukkan kasih.",
+    tryThis: "Buat satu kerja rumah tanpa disuruh.",
+    reflectionPrompt: "Bantuan apa yang anda beri?",
+  },
+  "playground-fair": {
+    title: "Main Adil",
+    summary: "Giliran dan libatkan rakan.",
+    story: "Keseronokan tumbuh bila kita bergilir dan menjemput orang lain.",
+    tryThis: "Bergilir atau jemput rakan baru.",
+    reflectionPrompt: "Bagaimana anda adil semasa bermain?",
+  },
+  "mrt-kind-seat": {
+    title: "Tempat Duduk Baik",
+    summary: "Tawarkan tempat duduk kepada yang memerlukan.",
+    story: "Di bas dan MRT, berikan tempat duduk dengan sopan.",
+    tryThis: "Tunjukkan cara menawarkan tempat duduk.",
+    reflectionPrompt: "Siapa yang lebih perlukan tempat duduk?",
+  },
+  "recycle-hero": {
+    title: "Wira Kitar Semula",
+    summary: "Kitar semula dengan betul.",
+    story: "Tong biru untuk item bersih dan kering.",
+    tryThis: "Kitar semula satu item dengan betul.",
+    reflectionPrompt: "Apa yang anda kitar semula?",
+  },
+  "apology-brave": {
+    title: "Maaf Berani",
+    summary: "Maaf ikhlas membaiki persahabatan.",
+    story: "Maaf yang baik namakan kesilapan dan cuba baiki.",
+    tryThis: "Minta maaf dengan jelas jika perlu.",
+    reflectionPrompt: "Bagaimana maaf anda membantu?",
+  },
+  "speak-up-kindly": {
+    title: "Bersuara Lembut",
+    summary: "Tegur demi orang lain dengan baik.",
+    story: "Jika ada ejekan, kata ‘sila berhenti’ dengan lembut.",
+    tryThis: "Latih ayat teguran lembut.",
+    reflectionPrompt: "Bila anda perlu bersuara?",
+  },
+  "chopsticks-care": {
+    title: "Jaga Sumpit",
+    summary: "Guna sumpit dengan hormat.",
+    story: "Jangan cucuk sumpit tegak dalam nasi atau tunjuk orang.",
+    tryThis: "Latih adab alat makan.",
+    reflectionPrompt: "Tabiat meja hormat apa yang anda praktik?",
+  },
+  "library-whisper": {
+    title: "Kuasa Bisik",
+    summary: "Suara lembut di ruang bersama.",
+    story: "Di perpustakaan, bisik dan pulangkan buku ke tempatnya.",
+    tryThis: "Guna suara lembut di ruang tenang.",
+    reflectionPrompt: "Di mana kuasa bisik membantu?",
+  },
+  "team-play-spirit": {
+    title: "Semangat Pasukan",
+    summary: "Galakkan rakan sepasukan.",
+    story: "Hantar bola, galakkan usaha, dan bersalaman selepas bermain.",
+    tryThis: "Galakkan rakan atau ucap good game.",
+    reflectionPrompt: "Bagaimana anda tunjukkan semangat pasukan?",
+  },
+};
+
+const ta: Record<string, LessonText> = {
+  "table-manners-sg": {
+    title: "மகிழ்ச்சியான மேசை மரியாதை",
+    summary: "மரியாதையுடன் உண்ணுங்கள்.",
+    story: "உணவு நேரம் குடும்ப நேரம். கைகழுவி நன்றி சொல்லுங்கள்.",
+    tryThis: "ஒரு உணவில் கைகழுவி நன்றி சொல்லுங்கள்.",
+    reflectionPrompt: "உணவு நேரத்தை எப்படி அழகுபடுத்தினீர்கள்?",
+  },
+  "listening-ears": {
+    title: "கேட்கும் காதுகள்",
+    summary: "பொறுமையாகக் கேளுங்கள்.",
+    story: "பேச்சாளர் முடியும் வரை கேட்டு பிறகு பதிலளியுங்கள்.",
+    tryThis: "குறுக்கிடாமல் ஒரு கதையைக் கேளுங்கள்.",
+    reflectionPrompt: "யாரை கவனமாகக் கேட்டீர்கள்?",
+  },
+  "neighbour-hello": {
+    title: "அண்டை வீட்டார் வணக்கம்",
+    summary: "தால்வாசல் வணக்கம் கம்போங் உணர்வு.",
+    story: "புன்னகை அல்லது காலை வணக்கம் ஒருவரின் நாளை ஒளிரச் செய்யும்.",
+    tryThis: "அண்டை வீட்டாரை மரியாதையாக வணங்குங்கள்.",
+    reflectionPrompt: "யாரின் நாளை ஒளிரச் செய்தீர்கள்?",
+  },
+  "mid-autumn-share": {
+    title: "நடு இலையுதிர் பகிர்வு",
+    summary: "விளக்குகள் பகிர்வை நினைவூட்டும்.",
+    story: "நடு இலையுதிர் விழாவில் பகிர்வும் ஒளியும் முக்கியம்.",
+    tryThis: "ஒரு சிறிய பகிர்வு செய்யுங்கள்.",
+    reflectionPrompt: "எப்படி அன்பைப் பகிர்ந்தீர்கள்?",
+  },
+  "vesak-compassion": {
+    title: "வேசாக் கருணை",
+    summary: "கருணை அமைதியை வளர்க்கும்.",
+    story: "வேசாக் கருணையை நினைவூட்டுகிறது. ஒரு மென்மையான செயல் செய்யுங்கள்.",
+    tryThis: "ஒரு அமைதியான கருணைச் செயல் செய்யுங்கள்.",
+    reflectionPrompt: "எந்தச் செயலைத் தேர்ந்தெடுத்தீர்கள்?",
+  },
+  "national-day-pride": {
+    title: "தேசிய தின பெருமை",
+    summary: "சிங்கப்பூரை ஒன்றாகக் கொண்டாடுங்கள்.",
+    story: "பல இனங்கள் ஒரே வீட்டைப் பகிர்கின்றன.",
+    tryThis: "சிங்கப்பூரைப் பற்றி விரும்பும் ஒன்றைச் சொல்லுங்கள்.",
+    reflectionPrompt: "எது பெருமை தருகிறது?",
+  },
+  "baju-respect": {
+    title: "உடை மரியாதை",
+    summary: "பாரம்பரிய உடைகளை மதியுங்கள்.",
+    story: "பாரம்பரிய உடைகள் பெருமையுடன் அணியப்படுகின்றன; கேலி வேண்டாம்.",
+    tryThis: "ஒருவரின் உடையை அன்பாகப் பாராட்டுங்கள்.",
+    reflectionPrompt: "பண்பாட்டை எப்படி மதித்தீர்கள்?",
+  },
+  "help-at-home": {
+    title: "வீட்டு உதவியாளர்",
+    summary: "கேட்காமல் உதவுங்கள்.",
+    story: "பொம்மைகளை எடுத்து வைப்பது அல்லது தண்ணீர் கொண்டு வருவது உதவும்.",
+    tryThis: "ஒரு வீட்டு வேலை செய்யுங்கள்.",
+    reflectionPrompt: "என்ன உதவி செய்தீர்கள்?",
+  },
+  "playground-fair": {
+    title: "நியாய விளையாட்டு",
+    summary: "முறைகாத்து விளையாடுங்கள்.",
+    story: "முறைகாத்து அழைக்கும்போது விளையாட்டு மகிழ்ச்சியாகும்.",
+    tryThis: "முறைகாத்து அல்லது புதியவரை அழையுங்கள்.",
+    reflectionPrompt: "எப்படி நியாயமாக விளையாடினீர்கள்?",
+  },
+  "mrt-kind-seat": {
+    title: "அன்பான இருக்கை",
+    summary: "தேவைப்படுபவருக்கு இருக்கை அளியுங்கள்.",
+    story: "MRT மற்றும் பேருந்தில் முன்னுரிமை இருக்கைகள் உதவுகின்றன.",
+    tryThis: "இருக்கை அளிக்கும் வார்த்தைகளைப் பயிலுங்கள்.",
+    reflectionPrompt: "யாருக்கு இருக்கை தேவை?",
+  },
+  "recycle-hero": {
+    title: "மறுசுழற்சி வீரர்",
+    summary: "சரியாக மறுசுழற்சி செய்யுங்கள்.",
+    story: "நீலப் பெட்டியில் சுத்தமான உலர் பொருட்கள் சேரும்.",
+    tryThis: "ஒரு பொருளைச் சரியாக மறுசுழற்சி செய்யுங்கள்.",
+    reflectionPrompt: "எதை மறுசுழற்சி செய்தீர்கள்?",
+  },
+  "apology-brave": {
+    title: "தைரிய மன்னிப்பு",
+    summary: "உண்மையான மன்னிப்பு நட்பைச் சரிசெய்யும்.",
+    story: "தவறைச் சொல்லி மன்னிப்பு கேட்டு சரிசெய்ய முயலுங்கள்.",
+    tryThis: "தேவைப்பட்டால் தெளிவாக மன்னிப்பு கேளுங்கள்.",
+    reflectionPrompt: "மன்னிப்பு எப்படி உதவியது?",
+  },
+  "speak-up-kindly": {
+    title: "மென்மையாகப் பேசுங்கள்",
+    summary: "மற்றவருக்காக மென்மையாகப் பேசுங்கள்.",
+    story: "கேலி நடந்தால் மென்மையாக நிறுத்துங்கள் என்று சொல்லுங்கள்.",
+    tryThis: "ஒரு மென்மையான துணிச்சல் வாக்கியத்தைப் பயிலுங்கள்.",
+    reflectionPrompt: "யாருக்காகப் பேச வேண்டும்?",
+  },
+  "chopsticks-care": {
+    title: "சாப்ஸ்டிக் அக்கறை",
+    summary: "சாப்ஸ்டிக்ஸை மரியாதையுடன் பயன்படுத்துங்கள்.",
+    story: "அரிசியில் நேராகக் குத்தவோ சுட்டிக்காட்டவோ வேண்டாம்.",
+    tryThis: "பாத்திர மரியாதையைப் பயிலுங்கள்.",
+    reflectionPrompt: "எந்த மேசைப் பழக்கத்தைப் பயின்றீர்கள்?",
+  },
+  "library-whisper": {
+    title: "நூலக இடைக்குரல்",
+    summary: "அமைதியான குரல் பகிர்வைக் காக்கும்.",
+    story: "நூலகத்தில் இடைக்குரலும் ஒழுங்கும் முக்கியம்.",
+    tryThis: "அமைதியான இடத்தில் இடைக்குரல் பயன்படுத்துங்கள்.",
+    reflectionPrompt: "இடைக்குரல் எங்கே உதவியது?",
+  },
+  "team-play-spirit": {
+    title: "அணி உணர்வு",
+    summary: "அணி தோழர்களை ஊக்குவியுங்கள்.",
+    story: "பகிர்வு, ஊக்கம், பின் கைகுலுக்கல் அணி உணர்வு.",
+    tryThis: "ஒரு தோழரை ஊக்குவியுங்கள்.",
+    reflectionPrompt: "அணி உணர்வை எப்படிக் காட்டினீர்கள்?",
+  },
+};
+
+export function extraLessonOverlay(locale: Locale): Record<string, LessonText> | null {
+  if (locale === "zh") return zh;
+  if (locale === "ms") return ms;
+  if (locale === "ta") return ta;
+  return null;
+}

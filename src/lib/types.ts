@@ -9,11 +9,20 @@ export type Heritage =
   | "indian"
   | "eurasian";
 
+export type ClassId =
+  | "friendly-voices"
+  | "festival-friends"
+  | "kind-heart"
+  | "kampung-care"
+  | "brave-character";
+
 export type ProofType = "parent-confirm" | "photo-note" | "reflection";
 
 export type ProofStatus = "pending" | "approved" | "rejected";
 
 export type GrownupRole = "parent" | "teacher";
+
+export type RedemptionStatus = "pending" | "fulfilled" | "cancelled";
 
 export interface Lesson {
   id: string;
@@ -27,6 +36,7 @@ export interface Lesson {
   reflectionPrompt: string;
   missionId: string;
   accent: string;
+  classId?: ClassId;
 }
 
 export interface Mission {
@@ -58,11 +68,46 @@ export interface MissionProof {
   note: string;
   submittedAt: string;
   status: ProofStatus;
-  /** @deprecated use status */
   parentConfirmed?: boolean;
   starsEarned: number;
   reviewedAt?: string;
   reviewedBy?: GrownupRole;
+  drawingDataUrl?: string;
+  audioDataUrl?: string;
+  transcript?: string;
+}
+
+export interface PracticeEntry {
+  id: string;
+  missionId: string;
+  lessonId: string;
+  submittedAt: string;
+  dateKey: string;
+  note: string;
+  transcript?: string;
+  drawingDataUrl?: string;
+  audioDataUrl?: string;
+}
+
+export interface RewardItem {
+  id: string;
+  title: string;
+  description: string;
+  cost: number;
+  emoji: string;
+  enabled: boolean;
+  custom?: boolean;
+}
+
+export interface RewardRedemption {
+  id: string;
+  rewardId: string;
+  title: string;
+  emoji: string;
+  cost: number;
+  status: RedemptionStatus;
+  requestedAt: string;
+  fulfilledAt?: string;
 }
 
 export interface ProgressState {
@@ -72,4 +117,8 @@ export interface ProgressState {
   earnedBadges: string[];
   totalStars: number;
   parentPin: string;
+  practiceDates: string[];
+  practiceEntries: PracticeEntry[];
+  rewards: RewardItem[];
+  redemptions: RewardRedemption[];
 }

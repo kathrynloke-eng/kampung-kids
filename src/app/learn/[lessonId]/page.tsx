@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Onboarding } from "@/components/Onboarding";
+import { StoryReader } from "@/components/StoryReader";
 import {
   getLocalizedLesson,
   getLocalizedMission,
@@ -63,6 +64,7 @@ export default function LessonDetailPage() {
       <section className="space-y-2 rounded-[1.75rem] bg-white/85 p-5 ring-1 ring-teal-900/5">
         <h2 className="font-display text-xl text-teal-900">{t("storyTime")}</h2>
         <p className="leading-relaxed text-slate-700">{lesson.story}</p>
+        <StoryReader text={lesson.story} />
       </section>
 
       <section className="space-y-2 rounded-[1.75rem] bg-orange-50/80 p-5 ring-1 ring-orange-200/70">

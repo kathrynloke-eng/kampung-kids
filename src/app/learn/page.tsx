@@ -3,27 +3,55 @@
 import { useMemo, useState } from "react";
 import { LessonCard } from "@/components/LessonCard";
 import { Onboarding } from "@/components/Onboarding";
+import { learningClasses, resolveClassId } from "@/data/classes";
 import { localizedLessonsForAge } from "@/i18n/content";
 import { useI18n } from "@/i18n/provider";
 import { useProgress } from "@/lib/progress";
-import type { Pillar } from "@/lib/types";
+import type { ClassId, Pillar } from "@/lib/types";
 
-const filters: Array<"all" | Pillar> = ["all", "culture", "manners", "character"];
+const pillarFilters: Array<"all" | Pillar> = ["all", "culture", "manners", "character"];
 
 export default function LearnPage() {
   const { state, hydrated, isLessonComplete } = useProgress();
   const { t, locale } = useI18n();
-  const [filter, setFilter] = useState<(typeof filters)[number]>("all");
+  const [filter, setFilter] = useState<(typeof pillarFilters)[number]>("all");
+  const [classFilter, setClassFilter] = useState<"all" | ClassId>("all");
 
   const list = useMemo(() => {
     if (!state.profile) return [];
-    const base = localizedLessonsForAge(state.profile.ageBand, locale);
-    if (filter === "all") return base;
-    return base.filter((l) => l.pillar === filter);
-  }, [state.profile, filter, locale]);
+    let base = localizedLessonsForAge(state.profile.ageBand, locale);
+    if (filter !== "all") base = base.filter((l) => l.pillar === filter);
+    if (classFilter !== "all") {
+      base = base.filter(
+        (l) => resolveClassId(l.id, l.classId) === classFilter,
+      );
+    }
+    return base;
+  }, [state.profile, filter, classFilter, locale]);
+
+  const grouped = useMemo(() => {
+    const map = new Map<ClassId, typeof list>();
+    for (const lesson of list) {
+      const cid = resolveClassId(lesson.id, lesson.classId);
+      const arr = map.get(cid) ?? [];
+      arr.push(lesson);
+      map.set(cid, arr);
+    }
+    return learningClasses
+      .map((c) => ({ classId: c.id, lessons: map.get(c.id) ?? [] }))
+      .filter((g) => g.lessons.length > 0);
+  }, [list]);
 
   if (!hydrated) return null;
   if (!state.profile) return <Onboarding />;
+
+  const classLabel = (id: ClassId) => {
+    if (id === "friendly-voices") return t("classFriendlyVoices");
+    if (id === "festival-friends") return t("classFestivalFriends");
+    if (id === "kind-heart") return t("classKindHeart");
+    if (id === "kampung-care") return t("classKampungCare");
+    return t("classBraveCharacter");
+  };
 
   return (
     <div className="space-y-5">
@@ -33,7 +61,7 @@ export default function LearnPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {filters.map((item) => (
+        {pillarFilters.map((item) => (
           <button
             key={item}
             type="button"
@@ -49,13 +77,48 @@ export default function LearnPage() {
         ))}
       </div>
 
-      <div className="space-y-3">
-        {list.map((lesson) => (
-          <LessonCard
-            key={lesson.id}
-            lesson={lesson}
-            done={isLessonComplete(lesson.id)}
-          />
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setClassFilter("all")}
+          className={`rounded-full px-3 py-1.5 text-[11px] font-extrabold ${
+            classFilter === "all"
+              ? "bg-orange-500 text-white"
+              : "bg-orange-50 text-orange-800"
+          }`}
+        >
+          {t("allClasses")}
+        </button>
+        {learningClasses.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => setClassFilter(c.id)}
+            className={`rounded-full px-3 py-1.5 text-[11px] font-extrabold ${
+              classFilter === c.id
+                ? "bg-orange-500 text-white"
+                : "bg-orange-50 text-orange-800"
+            }`}
+          >
+            {classLabel(c.id)}
+          </button>
+        ))}
+      </div>
+
+      <div className="space-y-6">
+        {grouped.map((group) => (
+          <section key={group.classId} className="space-y-3">
+            <h2 className="font-display text-xl text-teal-900">
+              {classLabel(group.classId)}
+            </h2>
+            {group.lessons.map((lesson) => (
+              <LessonCard
+                key={lesson.id}
+                lesson={lesson}
+                done={isLessonComplete(lesson.id)}
+              />
+            ))}
+          </section>
         ))}
       </div>
     </div>

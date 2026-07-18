@@ -1,0 +1,68 @@
+import type { RewardItem } from "@/lib/types";
+
+export const defaultRewards: RewardItem[] = [
+  {
+    id: "reward-story-time",
+    title: "Extra story time",
+    description: "Pick an extra bedtime or sofa story with a grown-up.",
+    cost: 5,
+    emoji: "📚",
+    enabled: true,
+  },
+  {
+    id: "reward-choose-dinner",
+    title: "Choose dinner",
+    description: "Help choose tonight’s dinner or a favourite dish.",
+    cost: 8,
+    emoji: "🍜",
+    enabled: true,
+  },
+  {
+    id: "reward-park-outing",
+    title: "Park outing",
+    description: "A trip to the playground, park, or void-deck play.",
+    cost: 12,
+    emoji: "🌳",
+    enabled: true,
+  },
+  {
+    id: "reward-sticker",
+    title: "Sticker treat",
+    description: "Pick a fun sticker for your chart or bottle.",
+    cost: 3,
+    emoji: "⭐",
+    enabled: true,
+  },
+  {
+    id: "reward-screen-time",
+    title: "Bonus screen time",
+    description: "15 minutes of agreed screen time.",
+    cost: 10,
+    emoji: "📱",
+    enabled: true,
+  },
+  {
+    id: "reward-pick-game",
+    title: "Pick the game",
+    description: "You choose the family or sibling game.",
+    cost: 6,
+    emoji: "🎲",
+    enabled: true,
+  },
+  {
+    id: "reward-ice-kacang",
+    title: "Cool treat",
+    description: "A small ice cream or ice kacang style treat.",
+    cost: 9,
+    emoji: "🍧",
+    enabled: true,
+  },
+  {
+    id: "reward-library-trip",
+    title: "Library adventure",
+    description: "Visit the library and borrow a book you love.",
+    cost: 11,
+    emoji: "📖",
+    enabled: true,
+  },
+];

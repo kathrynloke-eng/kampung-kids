@@ -2,6 +2,7 @@
 
 import { BadgeTile } from "@/components/BadgeTile";
 import { Onboarding } from "@/components/Onboarding";
+import { ProofMedia } from "@/components/ProofMedia";
 import { getLocalizedMission, localizedBadges } from "@/i18n/content";
 import { useI18n } from "@/i18n/provider";
 import { useProgress } from "@/lib/progress";
@@ -20,22 +21,29 @@ export default function AwardsPage() {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] bg-gradient-to-br from-orange-500 to-amber-500 p-6 text-white shadow-xl shadow-orange-500/25">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-orange-50">
+      <section
+        id="stars"
+        className="relative scroll-mt-24 overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 p-6 text-white shadow-[0_28px_50px_rgba(234,88,12,0.35)]"
+      >
+        <div className="pointer-events-none absolute -right-6 -top-6 h-28 w-28 rounded-full bg-yellow-200/40 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-10 left-8 h-32 w-32 rounded-full bg-white/20 blur-2xl" />
+        <p className="relative text-sm font-extrabold uppercase tracking-[0.2em] text-orange-50">
           {t("awardsTitle")}
         </p>
-        <h1 className="mt-1 font-display text-4xl">{t("awardsHero")}</h1>
-        <p className="mt-2 max-w-md text-orange-50">{t("awardsBlurb")}</p>
-        <div className="mt-4 flex gap-6">
-          <div>
-            <p className="font-display text-3xl">{state.totalStars}</p>
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-100">
-              {t("stars")}
+        <h1 className="relative mt-1 font-display text-4xl">{t("awardsHero")}</h1>
+        <p className="relative mt-2 max-w-md font-semibold text-orange-50">
+          {t("awardsBlurb")}
+        </p>
+        <div className="relative mt-5 flex gap-3">
+          <div className="rounded-2xl bg-white/20 px-4 py-3 backdrop-blur-sm">
+            <p className="font-display text-3xl leading-none">{state.totalStars}</p>
+            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wide text-orange-50">
+              ★ {t("stars")}
             </p>
           </div>
-          <div>
-            <p className="font-display text-3xl">{earned.length}</p>
-            <p className="text-xs font-bold uppercase tracking-wide text-orange-100">
+          <div className="rounded-2xl bg-white/20 px-4 py-3 backdrop-blur-sm">
+            <p className="font-display text-3xl leading-none">{earned.length}</p>
+            <p className="mt-1 text-[10px] font-extrabold uppercase tracking-wide text-orange-50">
               {t("badges")}
             </p>
           </div>
@@ -63,7 +71,7 @@ export default function AwardsPage() {
                         ? t("reject")
                         : t("pendingProof")}
                   </p>
-                  <p className="mt-1 text-slate-600">{proof.note}</p>
+                  <ProofMedia proof={proof} />
                 </li>
               );
             })}
@@ -71,7 +79,7 @@ export default function AwardsPage() {
         </section>
       ) : null}
 
-      <section className="space-y-3">
+      <section id="badges" className="space-y-3 scroll-mt-24">
         <h2 className="font-display text-2xl text-teal-950">{t("badgeShelf")}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[...earned, ...locked].map((badge) => (

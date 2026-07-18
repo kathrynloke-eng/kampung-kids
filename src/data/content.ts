@@ -1,4 +1,5 @@
 import type { Badge, Lesson, Mission } from "@/lib/types";
+import { extraBadges, extraLessons, extraMissions } from "@/data/lessons-extra";
 
 export const lessons: Lesson[] = [
   {
@@ -7,6 +8,7 @@ export const lessons: Lesson[] = [
     pillar: "manners",
     heritage: "shared",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "friendly-voices",
     summary: "Learn warm ways Singaporeans say hello across cultures.",
     story:
       "In our kampung, every hello can make someone feel welcome. Chinese friends may say 'Ni hao', Malay friends may offer a gentle 'Assalamualaikum' or 'Apa khabar', Indian friends may say 'Namaste' or 'Vanakkam', and many of us simply smile and say 'Hi!' What matters most is kindness in your voice and eyes.",
@@ -22,6 +24,7 @@ export const lessons: Lesson[] = [
     pillar: "manners",
     heritage: "shared",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "kampung-care",
     summary: "Waiting your turn keeps everyone safe and fair.",
     story:
       "At the void deck, canteen, or bus stop, Singapore kids know a secret power: waiting patiently. Cutting the queue may feel faster, but it hurts fairness. A kampung hero stands behind the last person, keeps hands to themselves, and uses calm words if someone is unsure.",
@@ -36,6 +39,7 @@ export const lessons: Lesson[] = [
     pillar: "culture",
     heritage: "chinese",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "festival-friends",
     summary: "Greet elders warmly and celebrate with gratitude.",
     story:
       "During Chinese New Year, families gather, homes are cleaned, and children greet elders with respect. Saying 'Gong Xi Fa Cai' with a smile shows care. Receiving a red packet is exciting — and saying thank you shows good character. We also remember that festivals are about family, not only gifts.",
@@ -50,6 +54,7 @@ export const lessons: Lesson[] = [
     pillar: "culture",
     heritage: "malay",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "festival-friends",
     summary: "Celebrate with forgiveness, visiting, and generous hearts.",
     story:
       "Hari Raya Aidilfitri is a joyful time of forgiveness, family visits, and delicious food. A beautiful kampung value is sharing — offering kuih, making guests feel welcome, and saying kind words. Even if it is not your celebration, you can show respect by greeting friends warmly and learning why the day matters.",
@@ -64,6 +69,7 @@ export const lessons: Lesson[] = [
     pillar: "culture",
     heritage: "indian",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "festival-friends",
     summary: "Light stands for hope — and kindness brightens others.",
     story:
       "Deepavali, the Festival of Lights, celebrates good over darkness. Homes glow with lamps and rangoli, and families share sweets. Beyond the pretty lights, the lesson for kampung kids is to bring brightness through kind actions: helping, speaking gently, and welcoming friends of every race.",
@@ -78,6 +84,7 @@ export const lessons: Lesson[] = [
     pillar: "culture",
     heritage: "eurasian",
     ageBands: ["7-9", "10-12"],
+    classId: "kind-heart",
     summary: "Eurasian hospitality teaches us to welcome everyone.",
     story:
       "Many Eurasian families in Singapore are known for warm hospitality — good food, music, and making guests feel at home. The kampung spirit is the same idea: your home, classroom, and playground can be places where everyone belongs. Welcoming others is a powerful Singapore value.",
@@ -92,6 +99,7 @@ export const lessons: Lesson[] = [
     pillar: "manners",
     heritage: "shared",
     ageBands: ["4-6", "7-9"],
+    classId: "friendly-voices",
     summary: "Please, thank you, and sorry keep hearts soft.",
     story:
       "Magic words are not magic because they are fancy — they are magic because they show care. 'Please' asks with respect. 'Thank you' notices someone's help. 'Sorry' repairs a mistake. In Singapore homes and schools, these words help us live well together.",
@@ -106,6 +114,7 @@ export const lessons: Lesson[] = [
     pillar: "character",
     heritage: "shared",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "brave-character",
     summary: "Truth builds trust in our kampung.",
     story:
       "Sometimes telling the truth feels scary — maybe you spilled a drink or forgot homework. But honesty helps adults help you, and friends trust you more. A kampung kid with an honest heart admits mistakes early, apologises, and tries again.",
@@ -120,6 +129,7 @@ export const lessons: Lesson[] = [
     pillar: "character",
     heritage: "shared",
     ageBands: ["7-9", "10-12"],
+    classId: "brave-character",
     summary: "Friendship across races makes Singapore strong.",
     story:
       "Racial Harmony Day reminds us that Chinese, Malay, Indian, Eurasian, and many other Singaporeans share one home. Harmony is not only a special day — it is choosing curiosity over teasing, learning about festivals, and standing up kindly if someone is left out because of how they look, speak, or celebrate.",
@@ -134,6 +144,7 @@ export const lessons: Lesson[] = [
     pillar: "character",
     heritage: "shared",
     ageBands: ["4-6", "7-9", "10-12"],
+    classId: "kampung-care",
     summary: "Cleaning up shows respect for shared spaces.",
     story:
       "Whether it is your toys, the canteen tray area, or a park bench, leaving a place better than you found it is kampung pride. It is a quiet way to care for neighbours you may never meet.",
@@ -148,6 +159,7 @@ export const lessons: Lesson[] = [
     pillar: "manners",
     heritage: "indian",
     ageBands: ["4-6", "7-9"],
+    classId: "kampung-care",
     summary: "Removing shoes shows respect in many homes.",
     story:
       "In many Indian homes — and many Singapore homes of all races — we remove shoes before entering. Clean feet help keep homes clean and show we respect the family's space. When you visit, watch what others do, or politely ask, 'Should I take off my shoes?'",
@@ -162,6 +174,7 @@ export const lessons: Lesson[] = [
     pillar: "manners",
     heritage: "malay",
     ageBands: ["7-9", "10-12"],
+    classId: "friendly-voices",
     summary: "A respectful greeting can be gentle and sincere.",
     story:
       "Among Malay Muslims, the salam is a greeting of peace. Children often greet elders with care and humility. Even if salam is not part of your family practice, you can still greet Malay friends respectfully, speak softly to elders, and never tease how someone greets.",
@@ -170,7 +183,9 @@ export const lessons: Lesson[] = [
     missionId: "mission-gentle-greeting",
     accent: "#047857",
   },
+  ...extraLessons,
 ];
+
 
 export const missions: Mission[] = [
   {
@@ -294,6 +309,7 @@ export const missions: Mission[] = [
     stars: 3,
     badgeId: "badge-peace-greeter",
   },
+  ...extraMissions,
 ];
 
 export const badges: Badge[] = [
@@ -369,6 +385,7 @@ export const badges: Badge[] = [
     description: "Offered a gentle, respectful greeting.",
     icon: "🕊️",
   },
+  ...extraBadges,
 ];
 
 export const pillarLabels: Record<string, string> = {

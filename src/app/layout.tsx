@@ -3,6 +3,8 @@ import { Fredoka, Nunito } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 import { I18nProvider } from "@/i18n/provider";
 import { ProgressProvider } from "@/lib/progress";
+import { getToken } from "@/lib/auth-server";
+import { ConvexClientProvider } from "./ConvexClientProvider";
 import "./globals.css";
 
 const display = Fredoka({
@@ -40,19 +42,23 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const token = await getToken();
+
   return (
     <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
-        <I18nProvider>
-          <ProgressProvider>
-            <AppShell>{children}</AppShell>
-          </ProgressProvider>
-        </I18nProvider>
+        <ConvexClientProvider initialToken={token}>
+          <I18nProvider>
+            <ProgressProvider>
+              <AppShell>{children}</AppShell>
+            </ProgressProvider>
+          </I18nProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );
