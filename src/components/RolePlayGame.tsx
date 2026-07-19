@@ -1,20 +1,128 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useI18n } from "@/i18n/provider";
 import type { Lesson } from "@/lib/types";
 
-const STAR_TARGET = 5;
-const starPositions = [
-  { left: 12, top: 58 },
-  { left: 34, top: 28 },
-  { left: 61, top: 64 },
-  { left: 78, top: 24 },
-  { left: 49, top: 42 },
-  { left: 23, top: 20 },
-  { left: 84, top: 57 },
-  { left: 40, top: 72 },
-];
+type Simulation = {
+  scene: string;
+  backdrop: string;
+  steps: Array<{ emoji: string; label: string }>;
+};
+
+function simulationFor(lesson: Lesson): Simulation {
+  const simulations: Record<string, Simulation> = {
+    "greeting-friends": {
+      scene: "Neighbourhood walkway",
+      backdrop: "🏠 🌿 🏠",
+      steps: [
+        { emoji: "👵", label: "Smile and greet Auntie" },
+        { emoji: "👨", label: "Say hello to Uncle" },
+        { emoji: "🧒", label: "Welcome a new friend" },
+      ],
+    },
+    "queue-kampung": {
+      scene: "Busy canteen queue",
+      backdrop: "🍜 🧍 🧍 🧍",
+      steps: [
+        { emoji: "🚶", label: "Join the back of the queue" },
+        { emoji: "⏳", label: "Wait calmly for your turn" },
+        { emoji: "🙌", label: "Take your turn fairly" },
+      ],
+    },
+    "hari-raya-sharing": {
+      scene: "Sharing at home",
+      backdrop: "🏡 🍪 🧸",
+      steps: [
+        { emoji: "🎁", label: "Choose something to share" },
+        { emoji: "🤝", label: "Offer it kindly" },
+        { emoji: "😊", label: "See your friend smile" },
+      ],
+    },
+    "eurasian-welcome": {
+      scene: "Playground game",
+      backdrop: "🛝 ⚽ 🌤️",
+      steps: [
+        { emoji: "👀", label: "Notice someone on their own" },
+        { emoji: "👋", label: "Invite them to play" },
+        { emoji: "⚽", label: "Make space for everyone" },
+      ],
+    },
+    "please-thank-you": {
+      scene: "Family kitchen",
+      backdrop: "🏡 🍽️ 💛",
+      steps: [
+        { emoji: "🙏", label: "Ask kindly with please" },
+        { emoji: "💬", label: "Say thank you" },
+        { emoji: "❤️", label: "Say sorry when needed" },
+      ],
+    },
+    "tidy-space": {
+      scene: "Shared play corner",
+      backdrop: "🧸 📚 🧺",
+      steps: [
+        { emoji: "🧸", label: "Put away a toy" },
+        { emoji: "📚", label: "Stack the books neatly" },
+        { emoji: "✨", label: "Leave the space nicer" },
+      ],
+    },
+    "shoes-off": {
+      scene: "Home doorway",
+      backdrop: "🚪 👟 🏡",
+      steps: [
+        { emoji: "👟", label: "Take off your shoes" },
+        { emoji: "🧺", label: "Place them neatly together" },
+        { emoji: "🏠", label: "Enter with care" },
+      ],
+    },
+    "listening-ears": {
+      scene: "Story circle",
+      backdrop: "📖 👂 🌈",
+      steps: [
+        { emoji: "👂", label: "Turn your listening ears on" },
+        { emoji: "🤫", label: "Let the speaker finish" },
+        { emoji: "💬", label: "Reply after listening" },
+      ],
+    },
+    "playground-fair": {
+      scene: "Playground turn-taking",
+      backdrop: "🛝 🧒 ⚽",
+      steps: [
+        { emoji: "🙋", label: "Invite someone to join" },
+        { emoji: "🔄", label: "Take turns fairly" },
+        { emoji: "🎉", label: "Cheer for everyone" },
+      ],
+    },
+    "mrt-kind-seat": {
+      scene: "MRT ride",
+      backdrop: "🚇 💺 🧓",
+      steps: [
+        { emoji: "👀", label: "Notice someone who needs a seat" },
+        { emoji: "🪑", label: "Offer your seat politely" },
+        { emoji: "😊", label: "Make their journey kinder" },
+      ],
+    },
+    "recycle-hero": {
+      scene: "Recycling corner",
+      backdrop: "♻️ 🧴 📦",
+      steps: [
+        { emoji: "🧴", label: "Pick a clean, dry item" },
+        { emoji: "♻️", label: "Put it in the recycling bin" },
+        { emoji: "🌍", label: "Help care for our home" },
+      ],
+    },
+  };
+
+  return simulations[lesson.id] ?? {
+    scene: "Everyday kampung moment",
+    backdrop: "🏡 🌤️ 💛",
+    steps: [
+      { emoji: "👀", label: "Notice the moment" },
+      { emoji: "💬", label: lesson.tryThis },
+      { emoji: "❤️", label: "Choose a kind action" },
+    ],
+  };
+}
 
 export function RolePlayGame({
   lesson,
@@ -28,36 +136,17 @@ export function RolePlayGame({
   onComplete: () => void;
 }) {
   const { t } = useI18n();
-  const [playing, setPlaying] = useState(false);
-  const [score, setScore] = useState(0);
-  const [positionIndex, setPositionIndex] = useState(0);
+  const [started, setStarted] = useState(false);
+  const [step, setStep] = useState(0);
+  const simulation = simulationFor(lesson);
+  const activeStep = simulation.steps[step];
 
-  useEffect(() => {
-    if (!playing || score >= STAR_TARGET) return;
-    const timer = window.setInterval(() => {
-      setPositionIndex((current) => {
-        const step = 1 + Math.floor(Math.random() * (starPositions.length - 1));
-        return (current + step) % starPositions.length;
-      });
-    }, 900);
-    return () => window.clearInterval(timer);
-  }, [playing, score]);
-
-  const startGame = () => {
-    setScore(0);
-    setPositionIndex(Math.floor(Math.random() * starPositions.length));
-    setPlaying(true);
-  };
-
-  const catchStar = () => {
-    const nextScore = score + 1;
-    setScore(nextScore);
-    if (nextScore >= STAR_TARGET) {
-      setPlaying(false);
+  const advance = () => {
+    if (step === simulation.steps.length - 1) {
       onComplete();
       return;
     }
-    setPositionIndex((current) => (current + 2) % starPositions.length);
+    setStep((current) => current + 1);
   };
 
   if (complete) {
@@ -66,7 +155,7 @@ export function RolePlayGame({
         <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">
           🎮 {t("lessonStepGame")}
         </p>
-        <h2 className="mt-2 font-display text-xl text-emerald-900">{t("kindnessDashTitle")}</h2>
+        <h2 className="mt-2 font-display text-xl text-emerald-900">{t("missionSimulationTitle")}</h2>
         <p className="mt-1 font-semibold text-emerald-800">✓ {t("miniGameDone")}</p>
       </section>
     );
@@ -81,60 +170,47 @@ export function RolePlayGame({
     );
   }
 
-  const position = starPositions[positionIndex];
-
   return (
     <section className="space-y-4 rounded-[1.75rem] bg-gradient-to-br from-violet-100 via-fuchsia-50 to-amber-50 p-5 ring-1 ring-violet-200">
       <div>
         <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-violet-700">
           🎮 {t("lessonStepGame")}
         </p>
-        <h2 className="mt-2 font-display text-xl text-violet-950">{t("kindnessDashTitle")}</h2>
+        <h2 className="mt-2 font-display text-xl text-violet-950">{t("missionSimulationTitle")}</h2>
         <p className="mt-1 text-sm font-semibold leading-relaxed text-violet-900/80">
-          {t("rolePlayScenario", { prompt: lesson.tryThis })}
+          {t("missionSimulationBlurb")}
         </p>
       </div>
 
-      {!playing ? (
-        <div className="rounded-[1.5rem] bg-white/75 p-4 text-center ring-1 ring-violet-200">
-          <p className="text-4xl" aria-hidden>🌟</p>
-          <p className="mt-2 text-sm font-bold leading-relaxed text-violet-950">
-            {t("kindnessDashBlurb", { target: STAR_TARGET })}
-          </p>
-          <button type="button" onClick={startGame} className="kid-btn kid-btn-primary mt-4">
-            {t("kindnessDashStart")}
+      {!started ? (
+        <div className="rounded-[1.5rem] bg-white/75 p-5 text-center ring-1 ring-violet-200">
+          <p className="text-5xl" aria-hidden>{simulation.backdrop}</p>
+          <h3 className="mt-3 font-display text-xl text-violet-950">{simulation.scene}</h3>
+          <p className="mt-2 text-sm font-bold text-violet-900/80">{lesson.tryThis}</p>
+          <button type="button" onClick={() => setStarted(true)} className="kid-btn kid-btn-primary mt-4">
+            {t("missionSimulationStart")}
           </button>
         </div>
       ) : (
-        <div
-          className="relative h-60 overflow-hidden rounded-[1.5rem] border-4 border-white bg-gradient-to-b from-sky-200 via-cyan-100 to-emerald-200 shadow-inner"
-          aria-label={t("kindnessDashTitle")}
-        >
-          <span className="pointer-events-none absolute left-4 top-5 text-4xl opacity-70" aria-hidden>☁️</span>
-          <span className="pointer-events-none absolute right-5 top-10 text-3xl opacity-70" aria-hidden>☁️</span>
-          <span className="pointer-events-none absolute bottom-2 left-5 text-5xl" aria-hidden>🌳</span>
-          <span className="pointer-events-none absolute bottom-3 right-5 text-4xl" aria-hidden>🏡</span>
-          <div className="absolute left-4 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-extrabold text-violet-900 shadow-sm">
-            ⭐ {t("kindnessDashProgress", { count: score, target: STAR_TARGET })}
+        <div className="relative overflow-hidden rounded-[1.5rem] border-4 border-white bg-gradient-to-b from-sky-200 via-cyan-100 to-emerald-200 p-4 shadow-inner">
+          <span className="pointer-events-none absolute left-3 top-2 text-3xl opacity-70" aria-hidden>☁️</span>
+          <span className="pointer-events-none absolute right-3 top-7 text-2xl opacity-70" aria-hidden>☁️</span>
+          <div className="relative flex min-h-56 flex-col items-center justify-between text-center">
+            <div className="rounded-full bg-white/90 px-3 py-1 text-xs font-extrabold text-violet-900 shadow-sm">
+              {t("missionSimulationProgress", { count: step + 1, target: simulation.steps.length })}
+            </div>
+            <div className="space-y-2">
+              <p className="text-7xl drop-shadow-md" aria-hidden>{activeStep.emoji}</p>
+              <p className="max-w-56 rounded-2xl bg-white/90 px-4 py-2 text-sm font-extrabold text-violet-950 shadow-sm">
+                {activeStep.label}
+              </p>
+            </div>
+            <button type="button" onClick={advance} className="kid-btn bg-violet-700 text-white shadow-violet-700/25">
+              {t("missionSimulationDoAction")}
+            </button>
           </div>
-          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-violet-700 px-3 py-1 text-xs font-extrabold text-white shadow-sm">
-            {t("kindnessDashCatch")}
-          </p>
-          <button
-            type="button"
-            onClick={catchStar}
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full p-2 text-5xl drop-shadow-[0_4px_4px_rgba(109,40,217,0.35)] transition-[left,top,transform] duration-500 hover:scale-125 focus:scale-125"
-            style={{ left: `${position.left}%`, top: `${position.top}%` }}
-            aria-label={t("kindnessDashCatch")}
-          >
-            ⭐
-          </button>
         </div>
       )}
-
-      <p aria-live="polite" className="sr-only">
-        {t("kindnessDashProgress", { count: score, target: STAR_TARGET })}
-      </p>
     </section>
   );
 }
