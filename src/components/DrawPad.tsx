@@ -3,7 +3,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/i18n/provider";
 
-const COLORS = ["#134e4a", "#ea580c", "#0284c7", "#be123c", "#ca8a04", "#ffffff"];
+const COLORS = [
+  "#1f2937", "#134e4a", "#0f766e", "#0284c7", "#4338ca", "#7e22ce",
+  "#be123c", "#ea580c", "#f59e0b", "#ca8a04", "#65a30d", "#16a34a",
+  "#ec4899", "#92400e", "#ffffff", "#94a3b8",
+];
+
+const DRAWING_TOOLS = {
+  pencil: { icon: "✏️", width: 3, alpha: 0.9 },
+  coloredPencil: { icon: "🖍️", width: 5, alpha: 0.72 },
+  marker: { icon: "🖊️", width: 12, alpha: 0.7 },
+  crayon: { icon: "🖍", width: 9, alpha: 0.52 },
+} as const;
+
+type DrawingTool = keyof typeof DRAWING_TOOLS;
 
 export function DrawPad({
   value,
@@ -17,7 +30,7 @@ export function DrawPad({
   const drawing = useRef(false);
   const last = useRef<{ x: number; y: number } | null>(null);
   const [color, setColor] = useState(COLORS[0]);
-  const [brush, setBrush] = useState(6);
+  const [tool, setTool] = useState<DrawingTool>("pencil");
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -81,6 +94,36 @@ export function DrawPad({
     onChange("");
   };
 
+  const drawLine = (
+    ctx: CanvasRenderingContext2D,
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+  ) => {
+    const style = DRAWING_TOOLS[tool];
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = style.width;
+    ctx.globalAlpha = style.alpha;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.setLineDash(tool === "crayon" ? [1, 2] : []);
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  const toolLabel = (nextTool: DrawingTool) => {
+    const labels: Record<DrawingTool, string> = {
+      pencil: t("drawToolPencil"),
+      coloredPencil: t("drawToolColoredPencil"),
+      marker: t("drawToolMarker"),
+      crayon: t("drawToolCrayon"),
+    };
+    return labels[nextTool];
+  };
+
   return (
     <div className="space-y-3">
       <p className="text-sm font-extrabold text-teal-900">{t("drawHint")}</p>
@@ -92,6 +135,8 @@ export function DrawPad({
             e.currentTarget.setPointerCapture(e.pointerId);
             drawing.current = true;
             last.current = pointFromEvent(e);
+            const ctx = canvasRef.current?.getContext("2d");
+            if (ctx && last.current) drawLine(ctx, last.current, last.current);
           }}
           onPointerMove={(e) => {
             if (!drawing.current || !last.current) return;
@@ -99,14 +144,7 @@ export function DrawPad({
             const ctx = canvas?.getContext("2d");
             if (!canvas || !ctx) return;
             const next = pointFromEvent(e);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = brush;
-            ctx.lineCap = "round";
-            ctx.lineJoin = "round";
-            ctx.beginPath();
-            ctx.moveTo(last.current.x, last.current.y);
-            ctx.lineTo(next.x, next.y);
-            ctx.stroke();
+            drawLine(ctx, last.current, next);
             last.current = next;
           }}
           onPointerUp={() => {
@@ -120,7 +158,25 @@ export function DrawPad({
           }}
         />
       </div>
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap gap-2" aria-label={t("drawTools")}>
+        {(Object.keys(DRAWING_TOOLS) as DrawingTool[]).map((nextTool) => (
+          <button
+            key={nextTool}
+            type="button"
+            onClick={() => setTool(nextTool)}
+            aria-pressed={tool === nextTool}
+            className={`rounded-xl px-3 py-2 text-xs font-extrabold transition ${
+              tool === nextTool
+                ? "bg-teal-700 text-white shadow"
+                : "bg-teal-50 text-teal-900"
+            }`}
+          >
+            <span aria-hidden>{DRAWING_TOOLS[nextTool].icon} </span>
+            {toolLabel(nextTool)}
+          </button>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2" aria-label={t("drawColors")}>
         {COLORS.map((c) => (
           <button
             key={c}
@@ -133,13 +189,6 @@ export function DrawPad({
             style={{ background: c, boxShadow: "0 2px 8px rgba(0,0,0,0.12)" }}
           />
         ))}
-        <button
-          type="button"
-          onClick={() => setBrush((b) => (b === 6 ? 12 : 6))}
-          className="rounded-full bg-teal-100 px-3 py-2 text-xs font-extrabold text-teal-900"
-        >
-          {brush === 6 ? "✏️" : "🖌️"}
-        </button>
         <button
           type="button"
           onClick={clear}

@@ -9,7 +9,7 @@ import { useI18n } from "@/i18n/provider";
 import type { Mission } from "@/lib/types";
 import { useProgress } from "@/lib/progress";
 
-type ProofTab = "speak" | "draw";
+type ProofTab = "speak" | "type" | "draw";
 
 function MediaForm({
   title,
@@ -58,10 +58,11 @@ function MediaForm({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-teal-50 p-1">
+      <div className="grid grid-cols-3 gap-2 rounded-2xl bg-teal-50 p-1">
         {(
           [
             { id: "speak" as const, label: t("proofModeSpeak"), icon: "🎤" },
+            { id: "type" as const, label: t("proofModeType"), icon: "⌨️" },
             { id: "draw" as const, label: t("proofModeDraw"), icon: "🎨" },
           ] as const
         ).map((option) => (
@@ -92,6 +93,17 @@ function MediaForm({
           onAudio={setAudioDataUrl}
           onBusyChange={setVoiceBusy}
         />
+      ) : tab === "type" ? (
+        <label className="block space-y-2">
+          <span className="text-sm font-extrabold text-teal-900">{t("typeHint")}</span>
+          <textarea
+            value={transcript}
+            onChange={(event) => setTranscript(event.target.value)}
+            placeholder={t("proofPlaceholder")}
+            rows={5}
+            className="w-full resize-none rounded-2xl border-2 border-teal-100 bg-teal-50/40 px-4 py-3 text-base font-semibold text-slate-800 outline-none ring-orange-400/40 placeholder:text-slate-400 focus:ring-4"
+          />
+        </label>
       ) : (
         <DrawPad value={drawingDataUrl} onChange={setDrawingDataUrl} />
       )}
