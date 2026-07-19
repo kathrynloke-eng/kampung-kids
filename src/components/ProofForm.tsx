@@ -139,6 +139,7 @@ export function ProofForm({ mission }: { mission: Mission }) {
   } = useProgress();
   const [submitted, setSubmitted] = useState(false);
   const [practiceDone, setPracticeDone] = useState(false);
+  const [badgeAwarded, setBadgeAwarded] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
 
   const practicedThisMissionToday = useMemo(
@@ -159,7 +160,9 @@ export function ProofForm({ mission }: { mission: Mission }) {
             ★ {t("practiceLogged")}
           </p>
           <h2 className="font-display text-3xl">{t("practiceKeepGoing")}</h2>
-          <p className="font-semibold text-teal-50">{t("practiceBonusStar")}</p>
+          <p className="font-semibold text-teal-50">
+            {badgeAwarded ? t("badgeBonusStars", { stars: 5 }) : t("practiceBonusStar")}
+          </p>
           <button
             type="button"
             onClick={() => router.push("/")}
@@ -186,6 +189,7 @@ export function ProofForm({ mission }: { mission: Mission }) {
               audioDataUrl: input.audioDataUrl,
             });
             if (!result.ok) return t(result.errorKey);
+            setBadgeAwarded(!hasMissionBadge && completionCount + 1 >= 5);
             setPracticeDone(true);
             return null;
           }}

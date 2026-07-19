@@ -14,7 +14,7 @@ import { useProgress } from "@/lib/progress";
 
 export default function MissionDetailPage() {
   const params = useParams<{ missionId: string }>();
-  const { state, hydrated } = useProgress();
+  const { state, hydrated, missionCompletionCount, hasBadge } = useProgress();
   const { t, locale } = useI18n();
   const mission = getLocalizedMission(params.missionId, locale);
 
@@ -34,6 +34,8 @@ export default function MissionDetailPage() {
 
   const lesson = getLocalizedLesson(mission.lessonId, locale);
   const badge = getLocalizedBadge(mission.badgeId, locale);
+  const completionCount = missionCompletionCount(mission.id);
+  const badgeEarned = hasBadge(mission.badgeId);
 
   return (
     <div className="space-y-5">
@@ -59,6 +61,29 @@ export default function MissionDetailPage() {
               {t("badge")} {badge.name}
             </span>
           ) : null}
+        </div>
+      </section>
+
+      <section className="rounded-[1.75rem] bg-gradient-to-br from-sky-50 to-indigo-50 p-4 ring-1 ring-sky-200/80">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-sky-700">
+              🏅 {t("badgeTrackerTitle")}
+            </p>
+            <p className="mt-1 text-sm font-bold text-slate-700">
+              {badgeEarned
+                ? t("badgeTrackerUnlocked")
+                : t("badgeTrackerProgress", { count: completionCount, target: 5 })}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white px-3 py-2 text-center shadow-sm ring-1 ring-sky-200">
+            <p className="font-display text-2xl leading-none text-sky-800">
+              {badgeEarned ? "✓" : completionCount}
+            </p>
+            <p className="text-[10px] font-extrabold uppercase text-sky-700">
+              {badgeEarned ? t("earned") : " / 5"}
+            </p>
+          </div>
         </div>
       </section>
 

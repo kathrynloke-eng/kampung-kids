@@ -29,6 +29,7 @@ import type {
 const STORAGE_KEY = "kampung-kids-progress-v2";
 const BADGE_COMPLETION_TARGET = 5;
 const BADGE_RETENTION_DAYS = 60;
+const BADGE_BONUS_STARS = 5;
 
 const defaultState: ProgressState = {
   profile: null,
@@ -522,14 +523,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           nextWithPractice,
           input.missionId,
         );
+        const earnsBadge =
+          completionsAfterPractice >= BADGE_COMPLETION_TARGET &&
+          !next.earnedBadges.includes(mission.badgeId);
         return {
           ...nextWithPractice,
-          totalStars: next.totalStars + 1,
-          earnedBadges:
-            completionsAfterPractice >= BADGE_COMPLETION_TARGET &&
-            !next.earnedBadges.includes(mission.badgeId)
-              ? [...next.earnedBadges, mission.badgeId]
-              : next.earnedBadges,
+          totalStars: next.totalStars + 1 + (earnsBadge ? BADGE_BONUS_STARS : 0),
+          earnedBadges: earnsBadge
+            ? [...next.earnedBadges, mission.badgeId]
+            : next.earnedBadges,
         };
       });
 
@@ -603,9 +605,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   );
 
   const resetProgress = useCallback(() => {
-    setHousehold(emptyHousehold);
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem("kampung-kids-progress-v1");
+    setHousehold((previous) => {
+      const id = previous.activeChildId;
+      const child = id ? previous.children[id] : null;
+      if (!id || !child?.profile) return previous;
+      return {
+        ...previous,
+        children: {
+          ...previous.children,
+          [id]: {
+            ...defaultState,
+            profile: child.profile,
+            parentPin: previous.parentPin,
+            rewards: previous.rewards,
+          },
+        },
+      };
+    });
   }, []);
 
   const requestReward = useCallback(
