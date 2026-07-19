@@ -6,9 +6,11 @@ import type { Badge } from "@/lib/types";
 export function BadgeTile({
   badge,
   earned,
+  completionCount,
 }: {
   badge: Badge;
   earned: boolean;
+  completionCount: number;
 }) {
   const { t } = useI18n();
 
@@ -33,6 +35,9 @@ export function BadgeTile({
       <h3 className="mt-3 font-display text-base text-teal-950">{badge.name}</h3>
       <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-600">
         {badge.description}
+      </p>
+      <p className="mt-2 text-[11px] font-extrabold text-sky-700">
+        {t("badgeTrackerProgress", { count: completionCount, target: 5 })}
       </p>
       <p
         className={`mt-2 text-[11px] font-extrabold uppercase tracking-wide ${

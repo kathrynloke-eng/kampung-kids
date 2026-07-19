@@ -4,11 +4,12 @@ import { BadgeTile } from "@/components/BadgeTile";
 import { Onboarding } from "@/components/Onboarding";
 import { ProofMedia } from "@/components/ProofMedia";
 import { getLocalizedMission, localizedBadges } from "@/i18n/content";
+import { missions } from "@/data/content";
 import { useI18n } from "@/i18n/provider";
 import { useProgress } from "@/lib/progress";
 
 export default function AwardsPage() {
-  const { state, hydrated, hasBadge, resetProgress } = useProgress();
+  const { state, hydrated, hasBadge, missionCompletionCount, resetProgress } = useProgress();
   const { t, locale } = useI18n();
 
   if (!hydrated) return null;
@@ -84,7 +85,14 @@ export default function AwardsPage() {
         <p className="text-sm font-semibold text-slate-600">{t("badgeRequirement")}</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[...earned, ...locked].map((badge) => (
-            <BadgeTile key={badge.id} badge={badge} earned={hasBadge(badge.id)} />
+            <BadgeTile
+              key={badge.id}
+              badge={badge}
+              earned={hasBadge(badge.id)}
+              completionCount={missionCompletionCount(
+                missions.find((mission) => mission.badgeId === badge.id)?.id ?? "",
+              )}
+            />
           ))}
         </div>
       </section>

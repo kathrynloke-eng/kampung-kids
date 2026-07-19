@@ -99,6 +99,13 @@ function missionActivityDays(state: ProgressState, missionId: string) {
 
 function missionCompletionCount(state: ProgressState, missionId: string) {
   const days = missionActivityDays(state, missionId);
+  const latest = days.at(-1);
+  if (
+    latest &&
+    dayIndex(dateKey()) - dayIndex(latest) > BADGE_RETENTION_DAYS
+  ) {
+    return 0;
+  }
   let count = 0;
   let previousDay: number | null = null;
   for (const day of days) {
