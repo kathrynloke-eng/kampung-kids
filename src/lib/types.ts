@@ -58,6 +58,7 @@ export interface Badge {
 }
 
 export interface ChildProfile {
+  id?: string;
   name: string;
   ageBand: AgeBand;
   createdAt: string;

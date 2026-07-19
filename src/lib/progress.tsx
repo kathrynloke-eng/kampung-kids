@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type SetStateAction,
   type ReactNode,
 } from "react";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
@@ -80,6 +81,10 @@ function normalizeState(raw: ProgressState): ProgressState {
 
 type ProgressContextValue = {
   state: ProgressState;
+  children: ChildProfile[];
+  activeChildId: string | null;
+  selectChild: (childId: string) => void;
+  addChild: () => void;
   hydrated: boolean;
   streak: number;
   practicedToday: boolean;
@@ -143,21 +148,119 @@ type ProgressContextValue = {
 
 const ProgressContext = createContext<ProgressContextValue | null>(null);
 
-function loadState(): ProgressState {
-  if (typeof window === "undefined") return defaultState;
+type HouseholdState = {
+  activeChildId: string | null;
+  children: Record<string, ProgressState>;
+  parentPin: string;
+  rewards: RewardItem[];
+};
+
+const emptyHousehold: HouseholdState = {
+  activeChildId: null,
+  children: {},
+  parentPin: defaultState.parentPin,
+  rewards: defaultState.rewards,
+};
+
+function normalizeHousehold(
+  activeChildId: string | null,
+  children: Record<string, ProgressState>,
+  parentPin?: string,
+  rewards?: RewardItem[],
+): HouseholdState {
+  const normalizedChildren = Object.fromEntries(
+    Object.entries(children).map(([id, child]) => [
+      id,
+      {
+        ...normalizeState(child),
+        profile: child.profile ? { ...child.profile, id } : null,
+      },
+    ]),
+  );
+  const fallback = Object.values(normalizedChildren)[0];
+  return {
+    activeChildId:
+      activeChildId && normalizedChildren[activeChildId]
+        ? activeChildId
+        : Object.keys(normalizedChildren)[0] ?? null,
+    children: normalizedChildren,
+    parentPin: parentPin ?? fallback?.parentPin ?? defaultState.parentPin,
+    rewards: rewards ?? fallback?.rewards ?? defaultState.rewards,
+  };
+}
+
+function loadHousehold(): HouseholdState {
+  if (typeof window === "undefined") return emptyHousehold;
   try {
     const raw =
       localStorage.getItem(STORAGE_KEY) ??
       localStorage.getItem("kampung-kids-progress-v1");
-    if (!raw) return defaultState;
-    return normalizeState(JSON.parse(raw) as ProgressState);
+    if (!raw) return emptyHousehold;
+    const parsed = JSON.parse(raw) as ProgressState | HouseholdState;
+    if ("children" in parsed && "activeChildId" in parsed) {
+      return normalizeHousehold(
+        parsed.activeChildId,
+        parsed.children,
+        parsed.parentPin,
+        parsed.rewards,
+      );
+    }
+    const legacy = normalizeState(parsed);
+    if (!legacy.profile) return emptyHousehold;
+    const id = `child-${legacy.profile.createdAt}`;
+    return normalizeHousehold(id, {
+      [id]: { ...legacy, profile: { ...legacy.profile, id } },
+    });
   } catch {
-    return defaultState;
+    return emptyHousehold;
   }
 }
 
+function loadHouseholdFromRemote(raw: unknown): HouseholdState {
+  if (raw && typeof raw === "object" && "children" in raw && "activeChildId" in raw) {
+    const parsed = raw as HouseholdState;
+    return normalizeHousehold(
+      parsed.activeChildId,
+      parsed.children,
+      parsed.parentPin,
+      parsed.rewards,
+    );
+  }
+  const legacy = normalizeState(raw as ProgressState);
+  if (!legacy.profile) return emptyHousehold;
+  const id = legacy.profile.id ?? `child-${legacy.profile.createdAt}`;
+  return normalizeHousehold(id, {
+    [id]: { ...legacy, profile: { ...legacy.profile, id } },
+  });
+}
+
 export function ProgressProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<ProgressState>(defaultState);
+  const [household, setHousehold] = useState<HouseholdState>(emptyHousehold);
+  const selectedChild = household.activeChildId
+    ? household.children[household.activeChildId]
+    : null;
+  const state = selectedChild
+    ? { ...selectedChild, parentPin: household.parentPin, rewards: household.rewards }
+    : defaultState;
+  const setState = useCallback((updater: SetStateAction<ProgressState>) => {
+    setHousehold((previous) => {
+      const id = previous.activeChildId;
+      if (!id) return previous;
+      const child = previous.children[id] ?? defaultState;
+      const current = {
+        ...child,
+        parentPin: previous.parentPin,
+        rewards: previous.rewards,
+      };
+      const next = typeof updater === "function" ? updater(current) : updater;
+      return {
+        ...previous,
+        parentPin: next.parentPin,
+        rewards: next.rewards,
+        children: { ...previous.children, [id]: next },
+      };
+    });
+  }, []);
   const [hydrated, setHydrated] = useState(false);
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
   const remoteProgress = useQuery(
@@ -169,7 +272,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- browser storage initializes client progress after hydration.
-    setState(loadState());
+    setHousehold(loadHousehold());
     setHydrated(true);
   }, []);
 
@@ -177,29 +280,40 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (!isAuthenticated || remoteProgress === undefined || remoteLoaded) return;
     if (remoteProgress?.state) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- the authenticated remote snapshot replaces the local migration fallback once.
-      setState(normalizeState(remoteProgress.state as ProgressState));
+      setHousehold(loadHouseholdFromRemote(remoteProgress.state));
     }
     setRemoteLoaded(true);
   }, [isAuthenticated, remoteLoaded, remoteProgress]);
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state, hydrated]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(household));
+  }, [household, hydrated]);
 
   useEffect(() => {
     if (!isAuthenticated || !remoteLoaded) return;
-    void saveRemoteProgress({ state });
-  }, [isAuthenticated, remoteLoaded, saveRemoteProgress, state]);
+    void saveRemoteProgress({ state: household });
+  }, [household, isAuthenticated, remoteLoaded, saveRemoteProgress]);
 
   const setProfile = useCallback((name: string, ageBand: AgeBand) => {
+    const id = household.activeChildId ?? `child-${Date.now()}`;
     const profile: ChildProfile = {
+      id,
       name: name.trim() || "Kampung Kid",
       ageBand,
       createdAt: new Date().toISOString(),
     };
-    setState((prev) => ({ ...prev, profile }));
-  }, []);
+    if (household.activeChildId) setState((prev) => ({ ...prev, profile }));
+    else
+      setHousehold((prev) => ({
+        ...prev,
+        activeChildId: id,
+        children: {
+          ...prev.children,
+          [id]: { ...defaultState, parentPin: prev.parentPin, rewards: prev.rewards, profile },
+        },
+      }));
+  }, [household.activeChildId, setState]);
 
   const completeLesson = useCallback((lessonId: string) => {
     setState((prev) => {
@@ -416,7 +530,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   );
 
   const resetProgress = useCallback(() => {
-    setState(defaultState);
+    setHousehold(emptyHousehold);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem("kampung-kids-progress-v1");
   }, []);
@@ -537,6 +651,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ProgressContextValue>(
     () => ({
       state,
+      children: Object.values(household.children).map((child) => child.profile).filter((child): child is ChildProfile => Boolean(child)),
+      activeChildId: household.activeChildId,
+      selectChild: (childId) => setHousehold((prev) => prev.children[childId] ? { ...prev, activeChildId: childId } : prev),
+      addChild: () => setHousehold((prev) => ({ ...prev, activeChildId: null })),
       hydrated: hydrated && !authLoading && (!isAuthenticated || remoteLoaded),
       streak,
       practicedToday: practicedTodayFlag,
@@ -571,6 +689,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
+      household,
       hydrated,
       streak,
       practicedTodayFlag,

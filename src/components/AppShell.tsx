@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n/provider";
 import { useProgress } from "@/lib/progress";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { state, hydrated, streak } = useProgress();
+  const { state, hydrated, streak, children: kidProfiles, activeChildId, selectChild, addChild } = useProgress();
   const { t } = useI18n();
 
   return (
@@ -30,13 +30,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {t("brand")}
             </p>
             {hydrated && state.profile ? (
-              <p className="truncate text-sm font-semibold text-teal-800/80">
-                {t("hiStars", {
-                  name: state.profile.name,
-                  stars: state.totalStars,
-                })}
-                {streak > 0 ? ` · 🔥${streak}` : ""}
-              </p>
+              <div className="flex items-center gap-2">
+                <select value={activeChildId ?? ""} onChange={(event) => selectChild(event.target.value)} className="max-w-32 rounded-lg bg-transparent text-sm font-semibold text-teal-800/80">
+                  {kidProfiles.map((child) => <option key={child.id} value={child.id}>{child.name}</option>)}
+                </select>
+                <button type="button" onClick={addChild} className="rounded-lg bg-teal-100 px-2 py-1 text-xs font-bold text-teal-800">+ Kid</button>
+                <span className="text-sm font-semibold text-teal-800/80">★{state.totalStars}{streak > 0 ? ` · 🔥${streak}` : ""}</span>
+              </div>
             ) : (
               <p className="text-sm font-semibold text-teal-800/70">{t("tagline")}</p>
             )}
