@@ -34,7 +34,7 @@ export function LessonCard({
 
   return (
     <Link
-      href={`/learn/${lesson.id}`}
+      href={done ? `/missions/${lesson.missionId}` : `/learn/${lesson.id}`}
       className="group block animate-rise overflow-hidden rounded-[1.85rem] bg-white/90 p-4 shadow-[0_14px_36px_rgba(15,118,110,0.1)] outline outline-2 outline-white transition hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(15,118,110,0.16)]"
     >
       <div className="flex items-start gap-3">
