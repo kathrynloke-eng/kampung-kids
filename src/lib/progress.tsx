@@ -27,6 +27,7 @@ import type {
 } from "@/lib/types";
 
 const STORAGE_KEY = "kampung-kids-progress-v2";
+const BADGE_COMPLETION_TARGET = 5;
 
 const defaultState: ProgressState = {
   profile: null,
@@ -130,6 +131,7 @@ type ProgressContextValue = {
   isLessonComplete: (lessonId: string) => boolean;
   isMissionApproved: (missionId: string) => boolean;
   isMissionPending: (missionId: string) => boolean;
+  missionCompletionCount: (missionId: string) => number;
   hasBadge: (badgeId: string) => boolean;
   pendingProofs: MissionProof[];
   approvedProofs: MissionProof[];
@@ -450,10 +452,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => {
         const next = withPracticeDay(prev);
+        const completionsAfterPractice =
+          2 + next.practiceEntries.filter((entry) => entry.missionId === input.missionId).length;
         return {
           ...next,
           practiceEntries: [...next.practiceEntries, entry],
           totalStars: next.totalStars + 1,
+          earnedBadges:
+            completionsAfterPractice >= BADGE_COMPLETION_TARGET &&
+            !next.earnedBadges.includes(mission.badgeId)
+              ? [...next.earnedBadges, mission.badgeId]
+              : next.earnedBadges,
         };
       });
 
@@ -489,9 +498,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
               : p,
           ),
           totalStars: next.totalStars + mission.stars,
-          earnedBadges: next.earnedBadges.includes(mission.badgeId)
-            ? next.earnedBadges
-            : [...next.earnedBadges, mission.badgeId],
         };
       });
 
@@ -681,6 +687,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         state.proofs.some(
           (p) => p.missionId === missionId && p.status === "pending",
         ),
+      missionCompletionCount: (missionId) =>
+        (state.proofs.some(
+          (p) => p.missionId === missionId && p.status === "approved",
+        )
+          ? 1
+          : 0) + state.practiceEntries.filter((entry) => entry.missionId === missionId).length,
       hasBadge: (badgeId) => state.earnedBadges.includes(badgeId),
       pendingProofs,
       approvedProofs,

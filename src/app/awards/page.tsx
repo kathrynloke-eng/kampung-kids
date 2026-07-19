@@ -81,6 +81,7 @@ export default function AwardsPage() {
 
       <section id="badges" className="space-y-3 scroll-mt-24">
         <h2 className="font-display text-2xl text-teal-950">{t("badgeShelf")}</h2>
+        <p className="text-sm font-semibold text-slate-600">{t("badgeRequirement")}</p>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {[...earned, ...locked].map((badge) => (
             <BadgeTile key={badge.id} badge={badge} earned={hasBadge(badge.id)} />

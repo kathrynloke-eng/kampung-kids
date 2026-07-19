@@ -134,6 +134,8 @@ export function ProofForm({ mission }: { mission: Mission }) {
     logPractice,
     isMissionApproved,
     isMissionPending,
+    missionCompletionCount,
+    hasBadge,
   } = useProgress();
   const [submitted, setSubmitted] = useState(false);
   const [practiceDone, setPracticeDone] = useState(false);
@@ -146,6 +148,8 @@ export function ProofForm({ mission }: { mission: Mission }) {
       ),
     [state.practiceEntries, mission.id],
   );
+  const completionCount = missionCompletionCount(mission.id);
+  const hasMissionBadge = hasBadge(mission.badgeId);
 
   if (isMissionApproved(mission.id)) {
     if (practiceDone || practicedThisMissionToday) {
@@ -192,14 +196,18 @@ export function ProofForm({ mission }: { mission: Mission }) {
     return (
       <div className="animate-pop space-y-4 overflow-hidden rounded-[2rem] bg-gradient-to-br from-teal-500 to-cyan-700 p-6 text-white shadow-xl shadow-teal-700/30">
         <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-teal-100">
-          ★ {t("awardUnlocked")}
+          ★ {hasMissionBadge ? t("awardUnlocked") : t("missionApproved")}
         </p>
         <h2 className="font-display text-3xl">{t("wellDone")}</h2>
         <p className="font-semibold text-teal-50">
-          {t("earnedStarsBadge", { stars: mission.stars })}
+          {hasMissionBadge
+            ? t("earnedStarsBadge", { stars: mission.stars })
+            : t("earnedStars", { stars: mission.stars })}
         </p>
         <p className="text-sm font-semibold text-teal-50/90">
-          {t("practiceKeepCue")}
+          {hasMissionBadge
+            ? t("practiceKeepCue")
+            : t("badgeProgress", { count: completionCount, target: 5 })}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
           <button
