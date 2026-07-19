@@ -12,8 +12,9 @@ const COLORS = [
 const DRAWING_TOOLS = {
   pencil: { icon: "✏️", width: 3, alpha: 0.9 },
   coloredPencil: { icon: "🖍️", width: 5, alpha: 0.72 },
-  marker: { icon: "🖊️", width: 12, alpha: 0.7 },
-  crayon: { icon: "🖍", width: 9, alpha: 0.52 },
+  pen: { icon: "🖊️", width: 2, alpha: 1 },
+  highlighter: { icon: "🖍", width: 18, alpha: 0.28 },
+  eraser: { icon: "⌫", width: 20, alpha: 1 },
 } as const;
 
 type DrawingTool = keyof typeof DRAWING_TOOLS;
@@ -101,12 +102,12 @@ export function DrawPad({
   ) => {
     const style = DRAWING_TOOLS[tool];
     ctx.save();
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = tool === "eraser" ? "#fff7ed" : color;
     ctx.lineWidth = style.width;
     ctx.globalAlpha = style.alpha;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.setLineDash(tool === "crayon" ? [1, 2] : []);
+    ctx.setLineDash([]);
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
@@ -118,8 +119,9 @@ export function DrawPad({
     const labels: Record<DrawingTool, string> = {
       pencil: t("drawToolPencil"),
       coloredPencil: t("drawToolColoredPencil"),
-      marker: t("drawToolMarker"),
-      crayon: t("drawToolCrayon"),
+      pen: t("drawToolPen"),
+      highlighter: t("drawToolHighlighter"),
+      eraser: t("drawToolEraser"),
     };
     return labels[nextTool];
   };
