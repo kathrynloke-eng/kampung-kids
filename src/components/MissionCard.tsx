@@ -7,21 +7,20 @@ import type { Mission } from "@/lib/types";
 export function MissionCard({
   mission,
   lessonTitle,
+  lessonComplete = true,
   complete,
   pending,
 }: {
   mission: Mission;
   lessonTitle: string;
+  lessonComplete?: boolean;
   complete?: boolean;
   pending?: boolean;
 }) {
   const { t } = useI18n();
 
-  return (
-    <Link
-      href={`/missions/${mission.id}`}
-      className="block animate-rise overflow-hidden rounded-[1.85rem] bg-gradient-to-br from-white via-white to-orange-50 p-4 shadow-[0_14px_36px_rgba(234,88,12,0.1)] outline outline-2 outline-white transition hover:-translate-y-1"
-    >
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wide text-orange-700">
@@ -53,8 +52,24 @@ export function MissionCard({
           ? `★ ${t("awardEarned")}`
           : pending
             ? t("waitingApproval")
-            : t("submitProof")}
+            : lessonComplete
+              ? t("submitProof")
+              : `🔒 ${t("finishLessonFirst")}`}
       </p>
+    </>
+  );
+
+  const className = `block animate-rise overflow-hidden rounded-[1.85rem] bg-gradient-to-br from-white via-white to-orange-50 p-4 shadow-[0_14px_36px_rgba(234,88,12,0.1)] outline outline-2 outline-white ${
+    lessonComplete ? "transition hover:-translate-y-1" : "opacity-70 grayscale"
+  }`;
+
+  return lessonComplete ? (
+    <Link href={`/missions/${mission.id}`} className={className}>
+      {content}
     </Link>
+  ) : (
+    <div className={className} aria-disabled="true">
+      {content}
+    </div>
   );
 }

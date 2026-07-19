@@ -45,10 +45,13 @@ export default function HomePage() {
   const ageMissions = localizedMissions(locale).filter((mission) =>
     ageLessons.some((lesson) => lesson.id === mission.lessonId),
   );
-  const openMissions = ageMissions.filter(
+  const unlockedMissions = ageMissions.filter((mission) =>
+    isLessonComplete(mission.lessonId),
+  );
+  const openMissions = unlockedMissions.filter(
     (mission) => !isMissionApproved(mission.id),
   ).length;
-  const nextMission = ageMissions.find(
+  const nextMission = unlockedMissions.find(
     (mission) => !isMissionApproved(mission.id) && !isMissionPending(mission.id),
   );
   const journeySteps = [

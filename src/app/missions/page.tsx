@@ -11,7 +11,13 @@ import { useI18n } from "@/i18n/provider";
 import { useProgress } from "@/lib/progress";
 
 export default function MissionsPage() {
-  const { state, hydrated, isMissionApproved, isMissionPending } = useProgress();
+  const {
+    state,
+    hydrated,
+    isLessonComplete,
+    isMissionApproved,
+    isMissionPending,
+  } = useProgress();
   const { t, locale } = useI18n();
 
   if (!hydrated) return null;
@@ -39,6 +45,7 @@ export default function MissionsPage() {
               key={mission.id}
               mission={mission}
               lessonTitle={lesson?.title ?? "Lesson"}
+              lessonComplete={isLessonComplete(mission.lessonId)}
               complete={isMissionApproved(mission.id)}
               pending={isMissionPending(mission.id)}
             />

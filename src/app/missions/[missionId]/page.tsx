@@ -14,7 +14,13 @@ import { useProgress } from "@/lib/progress";
 
 export default function MissionDetailPage() {
   const params = useParams<{ missionId: string }>();
-  const { state, hydrated, missionCompletionCount, hasBadge } = useProgress();
+  const {
+    state,
+    hydrated,
+    isLessonComplete,
+    missionCompletionCount,
+    hasBadge,
+  } = useProgress();
   const { t, locale } = useI18n();
   const mission = getLocalizedMission(params.missionId, locale);
 
@@ -33,9 +39,25 @@ export default function MissionDetailPage() {
   }
 
   const lesson = getLocalizedLesson(mission.lessonId, locale);
+  const lessonComplete = isLessonComplete(mission.lessonId);
   const badge = getLocalizedBadge(mission.badgeId, locale);
   const completionCount = missionCompletionCount(mission.id);
   const badgeEarned = hasBadge(mission.badgeId);
+
+  if (!lessonComplete) {
+    return (
+      <div className="mx-auto max-w-md space-y-5 rounded-[2rem] bg-white/90 p-6 text-center ring-1 ring-teal-900/5">
+        <p className="text-4xl" aria-hidden>🔒</p>
+        <h1 className="font-display text-3xl text-teal-950">{t("missionLockedTitle")}</h1>
+        <p className="text-sm font-semibold leading-relaxed text-slate-600">
+          {t("missionLockedBlurb")}
+        </p>
+        <Link href={`/learn/${mission.lessonId}`} className="kid-btn kid-btn-primary w-full">
+          {t("finishLessonFirst")}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
