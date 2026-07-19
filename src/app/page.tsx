@@ -13,7 +13,13 @@ import { ParentAuth } from "@/components/ParentAuth";
 
 export default function HomePage() {
   const { isAuthenticated, isLoading: authLoading } = useConvexAuth();
-  const { state, hydrated, isLessonComplete, isMissionApproved } = useProgress();
+  const {
+    state,
+    hydrated,
+    isLessonComplete,
+    isMissionApproved,
+    isMissionPending,
+  } = useProgress();
   const { t, locale } = useI18n();
 
   if (authLoading) {
@@ -36,10 +42,15 @@ export default function HomePage() {
 
   const ageLessons = localizedLessonsForAge(state.profile.ageBand, locale);
   const featured = ageLessons.slice(0, 3);
-  const openMissions = localizedMissions(locale).filter(
-    (m) =>
-      ageLessons.some((l) => l.id === m.lessonId) && !isMissionApproved(m.id),
+  const ageMissions = localizedMissions(locale).filter((mission) =>
+    ageLessons.some((lesson) => lesson.id === mission.lessonId),
+  );
+  const openMissions = ageMissions.filter(
+    (mission) => !isMissionApproved(mission.id),
   ).length;
+  const nextMission = ageMissions.find(
+    (mission) => !isMissionApproved(mission.id) && !isMissionPending(mission.id),
+  );
   const journeySteps = [
     { icon: "📖", label: t("lessonsDone"), complete: state.completedLessons.length > 0 },
     { icon: "🚀", label: t("navMissions"), complete: state.proofs.length > 0 },
@@ -82,6 +93,29 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {nextMission ? (
+        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-orange-400 to-amber-500 p-5 text-white shadow-[0_16px_36px_rgba(234,88,12,0.26)]">
+          <div className="pointer-events-none absolute -right-4 -top-4 text-8xl opacity-20" aria-hidden>
+            🚀
+          </div>
+          <div className="relative">
+            <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-orange-100">
+              {t("missionReminderTitle")}
+            </p>
+            <h2 className="mt-2 font-display text-2xl">{nextMission.title}</h2>
+            <p className="mt-2 max-w-md text-sm font-semibold leading-relaxed text-orange-50">
+              {t("missionReminderBlurb", { mission: nextMission.title })}
+            </p>
+            <Link
+              href={`/missions/${nextMission.id}`}
+              className="kid-btn mt-4 bg-white text-sm text-orange-700"
+            >
+              {t("missionReminderCta")}
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <section className="kid-panel-playful animate-rise p-4" aria-label={t("brand")}>
         <div className="flex items-center justify-between gap-3">
