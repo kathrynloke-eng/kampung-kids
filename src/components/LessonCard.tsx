@@ -62,7 +62,7 @@ export function LessonCard({
             {lesson.summary}
           </p>
           <p className="pt-1 text-sm font-extrabold text-orange-600">
-            {t("continueLearning")} →
+            {done ? t("missionReminderCta") : t("continueLearning")} →
           </p>
         </div>
       </div>
