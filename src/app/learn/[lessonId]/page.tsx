@@ -6,6 +6,7 @@ import { Onboarding } from "@/components/Onboarding";
 import { StoryReader } from "@/components/StoryReader";
 import {
   getLocalizedLesson,
+  getLocalizedBadge,
   getLocalizedMission,
 } from "@/i18n/content";
 import { useI18n } from "@/i18n/provider";
@@ -32,6 +33,7 @@ export default function LessonDetailPage() {
   }
 
   const mission = getLocalizedMission(lesson.missionId, locale);
+  const badge = mission ? getLocalizedBadge(mission.badgeId, locale) : null;
   const done = isLessonComplete(lesson.id);
 
   return (
@@ -74,6 +76,21 @@ export default function LessonDetailPage() {
           {t("think")} {lesson.reflectionPrompt}
         </p>
       </section>
+
+      {mission ? (
+        <section className="overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-teal-600 to-cyan-700 p-5 text-white shadow-lg shadow-teal-800/20">
+          <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-teal-100">
+            🚀 {t("realLifePromptTitle")}
+          </p>
+          <h2 className="mt-2 font-display text-2xl">{mission.title}</h2>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-teal-50">
+            {mission.description}
+          </p>
+          <p className="mt-3 rounded-2xl bg-white/15 px-3 py-2 text-sm font-extrabold text-white ring-1 ring-white/25">
+            🏅 {t("realLifeBadgePrompt", { badge: badge?.name ?? t("badge"), target: 5 })}
+          </p>
+        </section>
+      ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <button

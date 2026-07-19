@@ -50,6 +50,8 @@ export const ui = {
     finishLesson: "I finished this lesson",
     lessonDone: "Lesson marked done ✓",
     doMission: "Do the real-world mission",
+    realLifePromptTitle: "Your real-life challenge",
+    realLifeBadgePrompt: "Do this mission {target} times to earn your {badge} badge!",
     done: "Done",
     missionsTitle: "Missions",
     missionsBlurb:
@@ -259,6 +261,8 @@ export const ui = {
     finishLesson: "我学完了这一课",
     lessonDone: "课程已完成 ✓",
     doMission: "去做生活任务",
+    realLifePromptTitle: "你的生活挑战",
+    realLifeBadgePrompt: "完成这个任务 {target} 次，赢得你的 {badge} 徽章！",
     done: "完成",
     missionsTitle: "任务",
     missionsBlurb: "把所学用在生活中。家长或老师确认后，你就能获得星星和徽章。",
@@ -464,6 +468,8 @@ export const ui = {
     finishLesson: "Saya selesai pelajaran ini",
     lessonDone: "Pelajaran ditanda siap ✓",
     doMission: "Buat misi dunia nyata",
+    realLifePromptTitle: "Cabaran dunia nyata anda",
+    realLifeBadgePrompt: "Buat misi ini {target} kali untuk dapatkan lencana {badge} anda!",
     done: "Siap",
     missionsTitle: "Misi",
     missionsBlurb:
@@ -676,6 +682,8 @@ export const ui = {
     finishLesson: "இந்தப் பாடம் முடிந்தது",
     lessonDone: "பாடம் முடிந்ததாக குறிக்கப்பட்டது ✓",
     doMission: "உண்மை வாழ்வுப் பணி செய்",
+    realLifePromptTitle: "உங்கள் உண்மை வாழ்வுச் சவால்",
+    realLifeBadgePrompt: "உங்கள் {badge} பேட்ஜைப் பெற இந்தப் பணியை {target} முறை செய்யுங்கள்!",
     done: "முடிந்தது",
     missionsTitle: "பணிகள்",
     missionsBlurb:
