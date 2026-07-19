@@ -34,6 +34,7 @@ const BADGE_BONUS_STARS = 5;
 const defaultState: ProgressState = {
   profile: null,
   completedLessons: [],
+  completedMiniGames: [],
   proofs: [],
   earnedBadges: [],
   totalStars: 0,
@@ -75,6 +76,7 @@ function normalizeState(raw: ProgressState): ProgressState {
     ...defaultState,
     ...raw,
     proofs: (raw.proofs ?? []).map(normalizeProof),
+    completedMiniGames: raw.completedMiniGames ?? [],
     practiceDates: raw.practiceDates ?? [],
     practiceEntries: raw.practiceEntries ?? [],
     rewards: mergedRewards,
@@ -155,6 +157,7 @@ type ProgressContextValue = {
   practicedToday: boolean;
   setProfile: (name: string, ageBand: AgeBand) => void;
   completeLesson: (lessonId: string) => void;
+  completeMiniGame: (lessonId: string) => void;
   submitProof: (input: {
     missionId: string;
     note?: string;
@@ -165,7 +168,7 @@ type ProgressContextValue = {
     | { ok: true }
     | {
         ok: false;
-        errorKey: "errorEmptyProof" | "errorAlready" | "errorNotFound";
+        errorKey: "errorEmptyProof" | "errorAlready" | "errorNotFound" | "errorNeedFinishLesson";
       };
   logPractice: (input: {
     missionId: string;
@@ -193,6 +196,8 @@ type ProgressContextValue = {
   verifyPin: (pin: string) => boolean;
   resetProgress: () => void;
   isLessonComplete: (lessonId: string) => boolean;
+  isStoryComplete: (lessonId: string) => boolean;
+  isMiniGameComplete: (lessonId: string) => boolean;
   isMissionApproved: (missionId: string) => boolean;
   isMissionPending: (missionId: string) => boolean;
   missionCompletionCount: (missionId: string) => number;
@@ -398,6 +403,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const completeMiniGame = useCallback((lessonId: string) => {
+    setState((prev) => {
+      if (!prev.completedLessons.includes(lessonId)) return prev;
+      if (prev.completedMiniGames.includes(lessonId)) return prev;
+      return {
+        ...prev,
+        completedMiniGames: [...prev.completedMiniGames, lessonId],
+      };
+    });
+  }, []);
+
   const submitProof = useCallback(
     (input: {
       missionId: string;
@@ -409,6 +425,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const mission = getMission(input.missionId);
       if (!mission) {
         return { ok: false as const, errorKey: "errorNotFound" as const };
+      }
+
+      if (
+        !state.completedLessons.includes(mission.lessonId) ||
+        !state.completedMiniGames.includes(mission.lessonId)
+      ) {
+        return { ok: false as const, errorKey: "errorNeedFinishLesson" as const };
       }
 
       const existing = state.proofs.find((p) => p.missionId === input.missionId);
@@ -449,9 +472,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             ...next.proofs.filter((p) => p.missionId !== input.missionId),
             proof,
           ],
-          completedLessons: next.completedLessons.includes(mission.lessonId)
-            ? next.completedLessons
-            : [...next.completedLessons, mission.lessonId],
         };
       });
 
@@ -756,6 +776,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       practicedToday: practicedTodayFlag,
       setProfile,
       completeLesson,
+      completeMiniGame,
       submitProof,
       logPractice,
       approveProof,
@@ -768,7 +789,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       cancelRedemption,
       upsertReward,
       toggleReward,
-      isLessonComplete: (lessonId) => state.completedLessons.includes(lessonId),
+      isLessonComplete: (lessonId) =>
+        state.completedLessons.includes(lessonId) &&
+        state.completedMiniGames.includes(lessonId),
+      isStoryComplete: (lessonId) => state.completedLessons.includes(lessonId),
+      isMiniGameComplete: (lessonId) => state.completedMiniGames.includes(lessonId),
       isMissionApproved: (missionId) =>
         state.proofs.some(
           (p) => p.missionId === missionId && p.status === "approved",
@@ -793,6 +818,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       practicedTodayFlag,
       setProfile,
       completeLesson,
+      completeMiniGame,
       submitProof,
       logPractice,
       approveProof,

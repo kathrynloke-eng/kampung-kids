@@ -53,6 +53,13 @@ export function practicedToday(
   return state.practiceDates.includes(today);
 }
 
+function isLessonReady(state: ProgressState, lessonId: string) {
+  return (
+    state.completedLessons.includes(lessonId) &&
+    state.completedMiniGames.includes(lessonId)
+  );
+}
+
 export function getPracticeSuggestion(
   state: ProgressState,
   ageBand: AgeBand,
@@ -102,7 +109,7 @@ export function getPracticeSuggestion(
 
   // 2) Finish a mission whose lesson is done but not approved yet
   for (const lesson of ageLessons) {
-    if (!state.completedLessons.includes(lesson.id)) continue;
+    if (!isLessonReady(state, lesson.id)) continue;
     const mission = getMission(lesson.missionId);
     if (!mission) continue;
     const approved = state.proofs.some(
@@ -121,7 +128,7 @@ export function getPracticeSuggestion(
 
   // 3) Start next unfinished lesson
   for (const lesson of ageLessons) {
-    if (state.completedLessons.includes(lesson.id)) continue;
+    if (isLessonReady(state, lesson.id)) continue;
     const mission = getMission(lesson.missionId);
     if (!mission) continue;
     return { kind: "new-lesson", lesson, mission };

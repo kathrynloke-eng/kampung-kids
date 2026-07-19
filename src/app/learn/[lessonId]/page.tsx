@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Onboarding } from "@/components/Onboarding";
 import { StoryReader } from "@/components/StoryReader";
+import { RolePlayGame } from "@/components/RolePlayGame";
 import {
   getLocalizedLesson,
   getLocalizedBadge,
@@ -14,7 +15,15 @@ import { useProgress } from "@/lib/progress";
 
 export default function LessonDetailPage() {
   const params = useParams<{ lessonId: string }>();
-  const { state, hydrated, completeLesson, isLessonComplete } = useProgress();
+  const {
+    state,
+    hydrated,
+    completeLesson,
+    completeMiniGame,
+    isLessonComplete,
+    isStoryComplete,
+    isMiniGameComplete,
+  } = useProgress();
   const { t, locale } = useI18n();
   const lesson = getLocalizedLesson(params.lessonId, locale);
 
@@ -35,6 +44,8 @@ export default function LessonDetailPage() {
   const mission = getLocalizedMission(lesson.missionId, locale);
   const badge = mission ? getLocalizedBadge(mission.badgeId, locale) : null;
   const done = isLessonComplete(lesson.id);
+  const storyComplete = isStoryComplete(lesson.id);
+  const miniGameComplete = isMiniGameComplete(lesson.id);
 
   return (
     <article className="space-y-5">
@@ -64,9 +75,17 @@ export default function LessonDetailPage() {
       </header>
 
       <section className="space-y-2 rounded-[1.75rem] bg-white/85 p-5 ring-1 ring-teal-900/5">
+        <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-teal-700">📖 {t("lessonStepStory")}</p>
         <h2 className="font-display text-xl text-teal-900">{t("storyTime")}</h2>
         <p className="leading-relaxed text-slate-700">{lesson.story}</p>
         <StoryReader text={lesson.story} />
+        <button
+          type="button"
+          onClick={() => completeLesson(lesson.id)}
+          className="kid-btn kid-btn-primary mt-2 w-full"
+        >
+          {storyComplete ? t("storyComplete") : t("finishStory")}
+        </button>
       </section>
 
       <section className="space-y-2 rounded-[1.75rem] bg-orange-50/80 p-5 ring-1 ring-orange-200/70">
@@ -77,10 +96,17 @@ export default function LessonDetailPage() {
         </p>
       </section>
 
+      <RolePlayGame
+        lesson={lesson}
+        storyComplete={storyComplete}
+        complete={miniGameComplete}
+        onComplete={() => completeMiniGame(lesson.id)}
+      />
+
       {mission ? (
         <section className="overflow-hidden rounded-[1.75rem] bg-gradient-to-br from-teal-600 to-cyan-700 p-5 text-white shadow-lg shadow-teal-800/20">
           <p className="text-xs font-extrabold uppercase tracking-[0.18em] text-teal-100">
-            🚀 {t("realLifePromptTitle")}
+            🚀 {t("lessonStepMission")}
           </p>
           <h2 className="mt-2 font-display text-2xl">{mission.title}</h2>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-teal-50">
@@ -92,23 +118,22 @@ export default function LessonDetailPage() {
         </section>
       ) : null}
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <button
-          type="button"
-          onClick={() => completeLesson(lesson.id)}
-          className="flex-1 rounded-2xl bg-teal-700 px-4 py-3.5 text-sm font-bold text-white"
-        >
-          {done ? t("lessonDone") : t("finishLesson")}
-        </button>
-        {mission ? (
+      {mission ? (
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {done ? (
           <Link
             href={`/missions/${mission.id}`}
             className="flex-1 rounded-2xl bg-orange-500 px-4 py-3.5 text-center text-sm font-bold text-white"
           >
             {t("doMission")}
           </Link>
-        ) : null}
-      </div>
+          ) : (
+            <p className="rounded-2xl bg-slate-100 px-4 py-3.5 text-center text-sm font-bold text-slate-600">
+              🔒 {t("finishGameFirst")}
+            </p>
+          )}
+        </div>
+      ) : null}
     </article>
   );
 }

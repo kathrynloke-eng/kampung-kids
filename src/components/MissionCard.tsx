@@ -57,7 +57,7 @@ export function MissionCard({
               ? t("waitingApproval")
               : lessonComplete
                 ? t("submitProof")
-                : `🔒 ${t("finishLessonFirst")}`}
+                : `🔒 ${t("finishGameFirst")}`}
         </p>
         <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-extrabold text-sky-800 ring-1 ring-sky-200">
           🏅 {t("badgeTrackerProgress", { count: completionCount, target: 5 })}

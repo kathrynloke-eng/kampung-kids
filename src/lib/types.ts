@@ -114,6 +114,7 @@ export interface RewardRedemption {
 export interface ProgressState {
   profile: ChildProfile | null;
   completedLessons: string[];
+  completedMiniGames: string[];
   proofs: MissionProof[];
   earnedBadges: string[];
   totalStars: number;

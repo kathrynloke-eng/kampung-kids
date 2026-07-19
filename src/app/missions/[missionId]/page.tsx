@@ -53,7 +53,7 @@ export default function MissionDetailPage() {
           {t("missionLockedBlurb")}
         </p>
         <Link href={`/learn/${mission.lessonId}`} className="kid-btn kid-btn-primary w-full">
-          {t("finishLessonFirst")}
+          {t("finishGameFirst")}
         </Link>
       </div>
     );

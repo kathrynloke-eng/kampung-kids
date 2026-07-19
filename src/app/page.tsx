@@ -17,6 +17,7 @@ export default function HomePage() {
     state,
     hydrated,
     isLessonComplete,
+    isMiniGameComplete,
     isMissionPending,
     missionCompletionCount,
   } = useProgress();
@@ -41,6 +42,9 @@ export default function HomePage() {
   }
 
   const ageLessons = localizedLessonsForAge(state.profile.ageBand, locale);
+  const completedLessonCount = state.completedLessons.filter((lessonId) =>
+    isMiniGameComplete(lessonId),
+  ).length;
   const featured = ageLessons.slice(0, 3);
   const ageMissions = localizedMissions(locale).filter((mission) =>
     ageLessons.some((lesson) => lesson.id === mission.lessonId),
@@ -58,7 +62,7 @@ export default function HomePage() {
     (mission) => !isMissionPending(mission.id),
   );
   const journeySteps = [
-    { icon: "📖", label: t("lessonsDone"), complete: state.completedLessons.length > 0 },
+    { icon: "📖", label: t("lessonsDone"), complete: completedLessonCount > 0 },
     { icon: "🚀", label: t("navMissions"), complete: state.proofs.length > 0 },
     { icon: "🏆", label: t("badges"), complete: state.earnedBadges.length > 0 },
   ];
@@ -158,7 +162,7 @@ export default function HomePage() {
         {[
           {
             label: t("lessonsDone"),
-            value: state.completedLessons.length,
+            value: completedLessonCount,
             tone: "bg-teal-100 text-teal-800",
             href: "/learn",
           },
