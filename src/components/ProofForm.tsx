@@ -217,13 +217,6 @@ export function ProofForm({ mission }: { mission: Mission }) {
         </p>
         <h2 className="mt-2 font-display text-3xl">{t("pendingTitle")}</h2>
         <p className="mt-2 font-semibold text-orange-50">{t("pendingBlurb")}</p>
-        <button
-          type="button"
-          onClick={() => router.push("/grownups")}
-          className="kid-btn mt-5 bg-white text-sm text-orange-700"
-        >
-          {t("grownupsLink")}
-        </button>
       </div>
     );
   }

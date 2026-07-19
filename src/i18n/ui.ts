@@ -21,7 +21,7 @@ export const ui = {
     namePlaceholder: "e.g. Aisha, Wei Jie, Priya",
     yourAge: "Your age group",
     startLearning: "Start learning",
-    pinHint: "Parents & teachers approve missions in the Grown-ups dashboard (PIN 1234).",
+    pinHint: "Ask a parent or teacher to help review your missions.",
     heroTitle: "Learn it. Live it. Prove it.",
     heroBlurb:
       "Explore Singapore culture across our communities, practise good manners, grow strong character — then earn awards with real-world proof.",
@@ -83,7 +83,7 @@ export const ui = {
     heardYouSay: "We heard:",
     pendingTitle: "Waiting for a grown-up",
     pendingBlurb:
-      "Your proof was saved. A parent or teacher will approve it in the Grown-ups dashboard — then you get your stars!",
+      "Your proof was saved. A parent or teacher will review it, then you get your stars!",
     awardUnlocked: "Award unlocked",
     wellDone: "Well done, kampung kid!",
     earnedStarsBadge: "You earned {stars} stars and a badge for living what you learned.",
@@ -112,6 +112,7 @@ export const ui = {
     grownupsTitle: "Grown-ups",
     grownupsBlurb: "Parents and teachers can review proofs, award stars, and manage the PIN.",
     enterPin: "Enter PIN",
+    parentPinPrompt: "Enter your household's private PIN.",
     unlockDashboard: "Unlock dashboard",
     wrongPin: "That PIN is incorrect.",
     lockDashboard: "Lock dashboard",
@@ -218,7 +219,7 @@ export const ui = {
     namePlaceholder: "例如：美玲、Aisha、Priya",
     yourAge: "你的年龄组",
     startLearning: "开始学习",
-    pinHint: "家长与老师可在“大人面板”审批任务（PIN 1234）。",
+    pinHint: "请家长或老师帮你查看任务。",
     heroTitle: "学会。做到。证明。",
     heroBlurb:
       "探索新加坡各族文化，练习礼貌，培养品格，再用真实行动赢取奖励。",
@@ -277,7 +278,7 @@ export const ui = {
     playVoice: "播放录音",
     heardYouSay: "我们听到：",
     pendingTitle: "等待大人确认",
-    pendingBlurb: "证明已保存。家长或老师在大人面板批准后，你就会得到星星！",
+    pendingBlurb: "证明已保存。家长或老师查看后，你就会得到星星！",
     awardUnlocked: "奖励解锁",
     wellDone: "真棒，甘榜孩子！",
     earnedStarsBadge: "你因实践所学获得了 {stars} 颗星和一枚徽章。",
@@ -305,6 +306,7 @@ export const ui = {
     grownupsTitle: "大人面板",
     grownupsBlurb: "家长和老师可以审阅证明、发放星星并管理 PIN。",
     enterPin: "输入 PIN",
+    parentPinPrompt: "请输入家庭设置的私人 PIN。",
     unlockDashboard: "解锁面板",
     wrongPin: "PIN 不正确。",
     lockDashboard: "锁定面板",
@@ -410,7 +412,7 @@ export const ui = {
     namePlaceholder: "cth. Aisha, Wei Jie, Priya",
     yourAge: "Kumpulan umur anda",
     startLearning: "Mula belajar",
-    pinHint: "Ibu bapa & guru meluluskan misi di papan pemuka Dewasa (PIN 1234).",
+    pinHint: "Minta ibu bapa atau guru membantu menyemak misi anda.",
     heroTitle: "Belajar. Amalkan. Buktikan.",
     heroBlurb:
       "Terokai budaya Singapura, berlatih adab, bina perwatakan — kemudian dapatkan anugerah dengan bukti dunia nyata.",
@@ -471,7 +473,7 @@ export const ui = {
     heardYouSay: "Kami dengar:",
     pendingTitle: "Menunggu orang dewasa",
     pendingBlurb:
-      "Bukti anda disimpan. Ibu bapa atau guru akan meluluskannya di papan pemuka Dewasa — kemudian anda dapat bintang!",
+      "Bukti anda disimpan. Ibu bapa atau guru akan menyemaknya, kemudian anda dapat bintang!",
     awardUnlocked: "Anugerah dibuka",
     wellDone: "Syabas, anak kampung!",
     earnedStarsBadge:
@@ -502,6 +504,7 @@ export const ui = {
     grownupsBlurb:
       "Ibu bapa dan guru boleh semak bukti, beri bintang, dan urus PIN.",
     enterPin: "Masukkan PIN",
+    parentPinPrompt: "Masukkan PIN peribadi keluarga anda.",
     unlockDashboard: "Buka papan pemuka",
     wrongPin: "PIN tidak betul.",
     lockDashboard: "Kunci papan pemuka",
@@ -609,7 +612,7 @@ export const ui = {
     namePlaceholder: "எ.கா. ஆயிஷா, வேய் ஜீ, பிரியா",
     yourAge: "உங்கள் வயதுக் குழு",
     startLearning: "கற்கத் தொடங்கு",
-    pinHint: "பெற்றோர் & ஆசிரியர்கள் வளர்ந்தோர் டாஷ்போர்டில் பணிகளை அங்கீகரிப்பார் (PIN 1234).",
+    pinHint: "உங்கள் பணிகளைப் பார்க்க பெற்றோர் அல்லது ஆசிரியரிடம் உதவி கேளுங்கள்.",
     heroTitle: "கற்று. வாழ். நிரூபி.",
     heroBlurb:
       "சிங்கப்பூர் பண்பாடுகளை அறிந்து, மரியாதை பழகி, குணம் வளர்த்து — உண்மை வாழ்வுச் செயல்களால் விருது பெறுங்கள்.",
@@ -701,6 +704,7 @@ export const ui = {
     grownupsBlurb:
       "பெற்றோரும் ஆசிரியர்களும் ஆதாரங்களை ஆய்வு செய்து, நட்சத்திரங்கள் வழங்கி, PIN நிர்வகிக்கலாம்.",
     enterPin: "PIN உள்ளிடவும்",
+    parentPinPrompt: "உங்கள் குடும்பத்தின் தனிப்பட்ட PIN-ஐ உள்ளிடவும்.",
     unlockDashboard: "டாஷ்போர்டைத் திற",
     wrongPin: "PIN தவறானது.",
     lockDashboard: "டாஷ்போர்டைப் பூட்டு",

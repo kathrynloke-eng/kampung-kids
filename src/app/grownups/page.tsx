@@ -99,7 +99,7 @@ export default function GrownupsPage() {
               {pinError}
             </p>
           ) : (
-            <p className="text-xs text-slate-500">{t("pinHint")}</p>
+            <p className="text-xs text-slate-500">{t("parentPinPrompt")}</p>
           )}
           <button
             type="submit"
