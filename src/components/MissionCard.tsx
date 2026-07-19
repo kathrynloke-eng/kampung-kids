@@ -10,12 +10,14 @@ export function MissionCard({
   lessonComplete = true,
   complete,
   pending,
+  completionCount,
 }: {
   mission: Mission;
   lessonTitle: string;
   lessonComplete?: boolean;
   complete?: boolean;
   pending?: boolean;
+  completionCount: number;
 }) {
   const { t } = useI18n();
 
@@ -39,23 +41,28 @@ export function MissionCard({
           <p className="text-[10px] font-extrabold uppercase">{t("stars")}</p>
         </div>
       </div>
-      <p
-        className={`mt-3 text-sm font-extrabold ${
-          complete
-            ? "text-teal-700"
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <p
+          className={`text-sm font-extrabold ${
+            complete
+              ? "text-teal-700"
+              : pending
+                ? "text-orange-600"
+                : "text-teal-700"
+          }`}
+        >
+          {complete
+            ? `★ ${t("awardEarned")}`
             : pending
-              ? "text-orange-600"
-              : "text-teal-700"
-        }`}
-      >
-        {complete
-          ? `★ ${t("awardEarned")}`
-          : pending
-            ? t("waitingApproval")
-            : lessonComplete
-              ? t("submitProof")
-              : `🔒 ${t("finishLessonFirst")}`}
-      </p>
+              ? t("waitingApproval")
+              : lessonComplete
+                ? t("submitProof")
+                : `🔒 ${t("finishLessonFirst")}`}
+        </p>
+        <span className="rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-extrabold text-sky-800 ring-1 ring-sky-200">
+          🏅 {t("badgeTrackerProgress", { count: completionCount, target: 5 })}
+        </span>
+      </div>
     </>
   );
 

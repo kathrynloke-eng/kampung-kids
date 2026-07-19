@@ -17,6 +17,7 @@ export default function MissionsPage() {
     isLessonComplete,
     isMissionApproved,
     isMissionPending,
+    missionCompletionCount,
   } = useProgress();
   const { t, locale } = useI18n();
 
@@ -48,6 +49,7 @@ export default function MissionsPage() {
               lessonComplete={isLessonComplete(mission.lessonId)}
               complete={isMissionApproved(mission.id)}
               pending={isMissionPending(mission.id)}
+              completionCount={missionCompletionCount(mission.id)}
             />
           );
         })}
