@@ -17,8 +17,8 @@ export default function HomePage() {
     state,
     hydrated,
     isLessonComplete,
-    isMissionApproved,
     isMissionPending,
+    missionCompletionCount,
   } = useProgress();
   const { t, locale } = useI18n();
 
@@ -48,11 +48,14 @@ export default function HomePage() {
   const unlockedMissions = ageMissions.filter((mission) =>
     isLessonComplete(mission.lessonId),
   );
-  const openMissions = unlockedMissions.filter(
-    (mission) => !isMissionApproved(mission.id),
-  ).length;
-  const nextMission = unlockedMissions.find(
-    (mission) => !isMissionApproved(mission.id) && !isMissionPending(mission.id),
+  // A mission stays active until the child has practised it five times and
+  // earned its badge. The first approved proof is only the first step.
+  const activeMissions = unlockedMissions.filter(
+    (mission) => missionCompletionCount(mission.id) < 5,
+  );
+  const openMissions = activeMissions.length;
+  const nextMission = activeMissions.find(
+    (mission) => !isMissionPending(mission.id),
   );
   const journeySteps = [
     { icon: "📖", label: t("lessonsDone"), complete: state.completedLessons.length > 0 },
