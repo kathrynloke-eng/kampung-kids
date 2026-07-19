@@ -217,15 +217,25 @@ function SharingScene({ scene, onDone }: { scene: Scene; onDone: () => void }) {
 export function RolePlayGame({ lesson, storyComplete, complete, onComplete }: { lesson: Lesson; storyComplete: boolean; complete: boolean; onComplete: () => void }) {
   const { t } = useI18n();
   const [started, setStarted] = useState(false);
+  const [replaying, setReplaying] = useState(false);
   const scene = sceneFor(lesson);
 
-  if (complete) return <section className="rounded-[1.75rem] bg-emerald-50 p-5 ring-1 ring-emerald-200"><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">🎮 {t("lessonStepGame")}</p><h2 className="mt-2 font-display text-xl text-emerald-900">{t("missionSimulationTitle")}</h2><p className="mt-1 font-semibold text-emerald-800">✓ {t("miniGameDone")}</p></section>;
+  const finishSimulation = () => {
+    if (complete) {
+      setStarted(false);
+      setReplaying(false);
+      return;
+    }
+    onComplete();
+  };
+
+  if (complete && !replaying) return <section className="rounded-[1.75rem] bg-emerald-50 p-5 ring-1 ring-emerald-200"><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-emerald-700">🎮 {t("lessonStepGame")}</p><h2 className="mt-2 font-display text-xl text-emerald-900">{t("missionSimulationTitle")}</h2><p className="mt-1 font-semibold text-emerald-800">✓ {t("miniGameDone")}</p><button type="button" onClick={() => { setStarted(false); setReplaying(true); }} className="kid-btn kid-btn-primary mt-4">{t("replayMiniGame")}</button></section>;
   if (!storyComplete) return <section className="rounded-[1.75rem] bg-slate-100/90 p-5 text-slate-500 ring-1 ring-slate-200"><p className="text-xs font-extrabold uppercase tracking-[0.16em]">🔒 {t("lessonStepGame")}</p><p className="mt-2 text-sm font-semibold">{t("gameLocked")}</p></section>;
 
   return (
     <section className="space-y-4 rounded-[1.75rem] bg-gradient-to-br from-violet-100 via-fuchsia-50 to-amber-50 p-5 ring-1 ring-violet-200">
       <div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-violet-700">🎮 {t("lessonStepGame")}</p><h2 className="mt-2 font-display text-xl text-violet-950">Mission Theatre</h2><p className="mt-1 text-sm font-semibold leading-relaxed text-violet-900/80">Practise the real-life action in a playful scene, then take it outside.</p></div>
-      {!started ? <div className="rounded-[1.5rem] bg-white/75 p-5 text-center ring-1 ring-violet-200"><p className="text-5xl" aria-hidden>{scene.backdrop}</p><h3 className="mt-3 font-display text-xl text-violet-950">{scene.setting}</h3><p className="mt-2 text-sm font-bold text-violet-900/80">{lesson.tryThis}</p><button type="button" onClick={() => setStarted(true)} className="kid-btn kid-btn-primary mt-4">{t("missionSimulationStart")}</button></div> : scene.kind === "conversation" ? <ConversationScene scene={scene} prompt={lesson.tryThis} onDone={onComplete} /> : scene.kind === "queue" ? <QueueScene scene={scene} onDone={onComplete} /> : scene.kind === "sort" ? <SortScene scene={scene} onDone={onComplete} /> : scene.kind === "help" ? <HelpingScene scene={scene} onDone={onComplete} /> : <SharingScene scene={scene} onDone={onComplete} />}
+      {!started ? <div className="rounded-[1.5rem] bg-white/75 p-5 text-center ring-1 ring-violet-200"><p className="text-5xl" aria-hidden>{scene.backdrop}</p><h3 className="mt-3 font-display text-xl text-violet-950">{scene.setting}</h3><p className="mt-2 text-sm font-bold text-violet-900/80">{lesson.tryThis}</p><button type="button" onClick={() => setStarted(true)} className="kid-btn kid-btn-primary mt-4">{t("missionSimulationStart")}</button></div> : scene.kind === "conversation" ? <ConversationScene scene={scene} prompt={lesson.tryThis} onDone={finishSimulation} /> : scene.kind === "queue" ? <QueueScene scene={scene} onDone={finishSimulation} /> : scene.kind === "sort" ? <SortScene scene={scene} onDone={finishSimulation} /> : scene.kind === "help" ? <HelpingScene scene={scene} onDone={finishSimulation} /> : <SharingScene scene={scene} onDone={finishSimulation} />}
     </section>
   );
 }
