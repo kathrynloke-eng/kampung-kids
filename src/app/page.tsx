@@ -61,12 +61,6 @@ export default function HomePage() {
   const nextMission = activeMissions.find(
     (mission) => !isMissionPending(mission.id),
   );
-  const journeySteps = [
-    { icon: "📖", label: t("lessonsDone"), complete: completedLessonCount > 0 },
-    { icon: "🚀", label: t("navMissions"), complete: state.proofs.length > 0 },
-    { icon: "🏆", label: t("badges"), complete: state.earnedBadges.length > 0 },
-  ];
-
   return (
     <div className="space-y-7">
       <section className="relative overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-teal-600 via-teal-700 to-cyan-800 px-5 pb-6 pt-5 text-white shadow-[0_28px_60px_rgba(15,118,110,0.35)]">
@@ -126,35 +120,6 @@ export default function HomePage() {
           </div>
         </section>
       ) : null}
-
-      <section className="kid-panel-playful animate-rise p-4" aria-label={t("brand")}>
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-extrabold uppercase tracking-[0.15em] text-orange-600">
-              {t("practiceToday")}
-            </p>
-            <p className="mt-0.5 font-display text-lg text-teal-950">
-              {t("continueLearning")}
-            </p>
-          </div>
-          <span className="animate-twinkle text-2xl" aria-hidden>✨</span>
-        </div>
-        <div className="mt-3 flex items-center justify-between px-1">
-          {journeySteps.map((step) => (
-            <div key={step.label} className="flex flex-col items-center gap-1.5">
-              <span
-                className={`quest-step ${step.complete ? "quest-step-done" : ""}`}
-                title={step.label}
-              >
-                {step.complete ? "✓" : step.icon}
-              </span>
-              <span className="max-w-16 text-center text-[9px] font-extrabold uppercase tracking-wide text-teal-800">
-                {step.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
 
       <DailyPractice />
 
