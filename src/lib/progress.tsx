@@ -28,6 +28,7 @@ import type {
 
 const STORAGE_KEY = "kampung-kids-progress-v2";
 const BADGE_COMPLETION_TARGET = 5;
+const BADGE_RETENTION_DAYS = 60;
 
 const defaultState: ProgressState = {
   profile: null,
@@ -78,6 +79,61 @@ function normalizeState(raw: ProgressState): ProgressState {
     rewards: mergedRewards,
     redemptions: raw.redemptions ?? [],
   };
+}
+
+function dayIndex(key: string) {
+  return Math.floor(new Date(`${key}T12:00:00`).getTime() / 86_400_000);
+}
+
+function missionActivityDays(state: ProgressState, missionId: string) {
+  return [
+    ...state.proofs
+      .filter((proof) => proof.missionId === missionId && proof.status === "approved")
+      .map((proof) => dateKey(new Date(proof.reviewedAt ?? proof.submittedAt))),
+    ...state.practiceEntries
+      .filter((entry) => entry.missionId === missionId)
+      .map((entry) => entry.dateKey),
+  ].sort((a, b) => dayIndex(a) - dayIndex(b));
+}
+
+function missionCompletionCount(state: ProgressState, missionId: string) {
+  const days = missionActivityDays(state, missionId);
+  let count = 0;
+  let previousDay: number | null = null;
+  for (const day of days) {
+    const currentDay = dayIndex(day);
+    if (previousDay !== null && currentDay - previousDay > BADGE_RETENTION_DAYS) {
+      count = 0;
+    }
+    count += 1;
+    previousDay = currentDay;
+  }
+  return count;
+}
+
+function badgeIsCurrent(state: ProgressState, badgeId: string) {
+  if (!state.earnedBadges.includes(badgeId)) return false;
+  const missionIds = new Set([
+    ...state.proofs.map((proof) => proof.missionId),
+    ...state.practiceEntries.map((entry) => entry.missionId),
+  ]);
+  for (const missionId of missionIds) {
+    if (getMission(missionId)?.badgeId !== badgeId) continue;
+    const activityDays = missionActivityDays(state, missionId);
+    const latest = activityDays.at(-1);
+    if (
+      latest &&
+      dayIndex(dateKey()) - dayIndex(latest) <= BADGE_RETENTION_DAYS &&
+      missionCompletionCount(state, missionId) >= BADGE_COMPLETION_TARGET
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function currentBadgeIds(state: ProgressState) {
+  return state.earnedBadges.filter((badgeId) => badgeIsCurrent(state, badgeId));
 }
 
 type ProgressContextValue = {
@@ -242,7 +298,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     ? household.children[household.activeChildId]
     : null;
   const state = selectedChild
-    ? { ...selectedChild, parentPin: household.parentPin, rewards: household.rewards }
+    ? {
+        ...selectedChild,
+        earnedBadges: currentBadgeIds(selectedChild),
+        parentPin: household.parentPin,
+        rewards: household.rewards,
+      }
     : defaultState;
   const setState = useCallback((updater: SetStateAction<ProgressState>) => {
     setHousehold((previous) => {
@@ -251,6 +312,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const child = previous.children[id] ?? defaultState;
       const current = {
         ...child,
+        earnedBadges: currentBadgeIds(child),
         parentPin: previous.parentPin,
         rewards: previous.rewards,
       };
@@ -452,11 +514,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
       setState((prev) => {
         const next = withPracticeDay(prev);
-        const completionsAfterPractice =
-          2 + next.practiceEntries.filter((entry) => entry.missionId === input.missionId).length;
-        return {
+        const nextWithPractice = {
           ...next,
           practiceEntries: [...next.practiceEntries, entry],
+        };
+        const completionsAfterPractice = missionCompletionCount(
+          nextWithPractice,
+          input.missionId,
+        );
+        return {
+          ...nextWithPractice,
           totalStars: next.totalStars + 1,
           earnedBadges:
             completionsAfterPractice >= BADGE_COMPLETION_TARGET &&
@@ -688,12 +755,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           (p) => p.missionId === missionId && p.status === "pending",
         ),
       missionCompletionCount: (missionId) =>
-        (state.proofs.some(
-          (p) => p.missionId === missionId && p.status === "approved",
-        )
-          ? 1
-          : 0) + state.practiceEntries.filter((entry) => entry.missionId === missionId).length,
-      hasBadge: (badgeId) => state.earnedBadges.includes(badgeId),
+        missionCompletionCount(state, missionId),
+      hasBadge: (badgeId) => badgeIsCurrent(state, badgeId),
       pendingProofs,
       approvedProofs,
       recentPractice,

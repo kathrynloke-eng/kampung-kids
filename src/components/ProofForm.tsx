@@ -206,7 +206,7 @@ export function ProofForm({ mission }: { mission: Mission }) {
         </p>
         <p className="text-sm font-semibold text-teal-50/90">
           {hasMissionBadge
-            ? t("practiceKeepCue")
+            ? t("badgeKeepActive")
             : t("badgeProgress", { count: completionCount, target: 5 })}
         </p>
         <div className="flex flex-col gap-2 sm:flex-row">
