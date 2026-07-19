@@ -32,11 +32,7 @@ export function LessonCard({
             ? "indian"
             : "eurasian";
 
-  return (
-    <Link
-      href={done ? `/missions/${lesson.missionId}` : `/learn/${lesson.id}`}
-      className="group block animate-rise overflow-hidden rounded-[1.85rem] bg-white/90 p-4 shadow-[0_14px_36px_rgba(15,118,110,0.1)] outline outline-2 outline-white transition hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(15,118,110,0.16)]"
-    >
+  const lessonContent = (
       <div className="flex items-start gap-3">
         <div className="h-16 w-16 shrink-0 transition group-hover:rotate-3 group-hover:scale-105">
           <PillarGlyph pillar={lesson.pillar} accent={lesson.accent} />
@@ -62,10 +58,30 @@ export function LessonCard({
             {lesson.summary}
           </p>
           <p className="pt-1 text-sm font-extrabold text-orange-600">
-            {done ? t("missionReminderCta") : t("continueLearning")} →
+            {done ? t("reviewLesson") : t("continueLearning")} →
           </p>
         </div>
       </div>
+  );
+
+  return (
+    <div className="animate-rise overflow-hidden rounded-[1.85rem] bg-white/90 shadow-[0_14px_36px_rgba(15,118,110,0.1)] outline outline-2 outline-white">
+      <Link
+        href={`/learn/${lesson.id}`}
+        className="group block p-4 transition hover:-translate-y-1 hover:shadow-[0_20px_44px_rgba(15,118,110,0.16)]"
+      >
+        {lessonContent}
     </Link>
+      {done ? (
+        <div className="border-t border-teal-100 bg-teal-50/70 p-3">
+          <Link
+            href={`/missions/${lesson.missionId}`}
+            className="kid-btn kid-btn-primary w-full text-center text-sm"
+          >
+            🚀 {t("missionReminderCta")}
+          </Link>
+        </div>
+      ) : null}
+    </div>
   );
 }
