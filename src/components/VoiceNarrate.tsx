@@ -35,6 +35,15 @@ const speechLang: Record<Locale, string> = {
   ta: "ta-IN",
 };
 
+const MAX_RECORDING_SECONDS = 120;
+const RECORDING_AUDIO_BITRATE = 24_000;
+
+function formatRecordingTime(totalSeconds: number) {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 const subscribeToVoiceSupport = () => () => {};
 
 function getVoiceSupport() {
@@ -161,7 +170,9 @@ export function VoiceNarrate({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      const recorder = new MediaRecorder(stream);
+      const recorder = new MediaRecorder(stream, {
+        audioBitsPerSecond: RECORDING_AUDIO_BITRATE,
+      });
       chunksRef.current = [];
       recorder.ondataavailable = (event) => {
         if (event.data.size > 0) chunksRef.current.push(event.data);
@@ -195,9 +206,9 @@ export function VoiceNarrate({
 
     timerRef.current = window.setInterval(() => {
       setSeconds((current) => {
-        if (current >= 29) {
+        if (current >= MAX_RECORDING_SECONDS - 1) {
           stop();
-          return 30;
+          return MAX_RECORDING_SECONDS;
         }
         return current + 1;
       });
@@ -233,7 +244,11 @@ export function VoiceNarrate({
         <p className="font-display text-lg text-teal-900">
           {processing ? t("speakSaving") : recording ? t("speakStop") : transcript || audioDataUrl ? t("speakAgain") : t("proofModeSpeak")}
         </p>
-        {recording ? <p className="text-xs font-bold text-teal-700">{seconds}s / 30s</p> : null}
+        {recording ? (
+          <p className="text-xs font-bold text-teal-700">
+            {formatRecordingTime(seconds)} / {formatRecordingTime(MAX_RECORDING_SECONDS)}
+          </p>
+        ) : null}
       </div>
 
       {transcript ? (
