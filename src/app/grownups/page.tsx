@@ -363,15 +363,41 @@ export default function GrownupsPage() {
               className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-teal-50/60 px-3 py-2"
             >
               <span className="text-sm font-bold text-teal-900">
-                {reward.emoji} {reward.title} · ★{reward.cost}
+                {reward.emoji} {reward.title}
               </span>
-              <button
-                type="button"
-                onClick={() => toggleReward(reward.id, !reward.enabled)}
-                className="rounded-xl bg-white px-3 py-1.5 text-xs font-extrabold text-teal-800"
-              >
-                {reward.enabled ? t("earned") : t("locked")}
-              </button>
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1 rounded-xl bg-white px-2 py-1.5 text-xs font-extrabold text-teal-800">
+                  <span aria-hidden>★</span>
+                  <span className="sr-only">{t("treatCost")}</span>
+                  <input
+                    key={`${reward.id}-${reward.cost}`}
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    defaultValue={reward.cost}
+                    onBlur={(event) => {
+                      const cost = Number(event.target.value);
+                      if (!Number.isSafeInteger(cost) || cost < 1) {
+                        event.target.value = String(reward.cost);
+                      } else if (cost !== reward.cost) {
+                        upsertReward({ ...reward, cost });
+                      }
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") event.currentTarget.blur();
+                    }}
+                    className="w-12 bg-transparent text-center outline-none"
+                    aria-label={`${t("treatCost")}: ${reward.title}`}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => toggleReward(reward.id, !reward.enabled)}
+                  className="rounded-xl bg-white px-3 py-1.5 text-xs font-extrabold text-teal-800"
+                >
+                  {reward.enabled ? t("earned") : t("locked")}
+                </button>
+              </div>
             </li>
           ))}
         </ul>
