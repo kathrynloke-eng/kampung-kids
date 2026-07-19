@@ -207,6 +207,10 @@ input {
   animation: floaty 3.2s ease-in-out infinite;
 }
 
+.animate-bob {
+  animation: bob 2.4s ease-in-out infinite;
+}
+
 .animate-pop {
   animation: pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
@@ -330,6 +334,7 @@ input {
 @media (prefers-reduced-motion: reduce) {
   .animate-rise,
   .animate-float,
+  .animate-bob,
   .animate-pop,
   .animate-wiggle,
   .animate-twinkle,

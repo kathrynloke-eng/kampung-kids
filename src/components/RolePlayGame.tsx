@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Mascot } from "@/components/KidArt";
 import { useI18n } from "@/i18n/provider";
 import type { Lesson } from "@/lib/types";
 
@@ -127,6 +128,65 @@ function scenarioFor(lesson: Lesson): Scenario {
   };
 }
 
+function NeighbourSprite({ stepIndex, happy }: { stepIndex: number; happy: boolean }) {
+  const shirt = ["#f97316", "#7c3aed", "#ec4899"][stepIndex % 3];
+  const skin = ["#f3c39a", "#a96e4b", "#7b4b31"][stepIndex % 3];
+  return (
+    <svg viewBox="0 0 130 180" className={`h-full w-full drop-shadow-xl transition-transform duration-500 ${happy ? "-translate-y-3 rotate-3" : "animate-bob"}`} role="img" aria-label="Neighbour">
+      <ellipse cx="65" cy="168" rx="43" ry="8" fill="#0f766e" opacity=".18" />
+      <path d="M29 155c3-39 18-61 36-61s34 22 37 61H29z" fill={shirt} />
+      <path d="M39 150c11 8 40 8 52 0" fill="none" stroke="#fff" strokeWidth="6" strokeLinecap="round" opacity=".65" />
+      <circle cx="65" cy="62" r="34" fill={skin} />
+      <path d="M33 56c2-29 20-42 34-42 19 0 32 14 34 37-12-8-23-11-35-9-12 1-22 7-33 14z" fill="#253347" />
+      <circle cx="53" cy="64" r="3.5" fill="#1f2937" /><circle cx="77" cy="64" r="3.5" fill="#1f2937" />
+      <circle cx="44" cy="76" r="5" fill="#fb7185" opacity=".45" /><circle cx="86" cy="76" r="5" fill="#fb7185" opacity=".45" />
+      <path d={happy ? "M54 78c6 10 16 10 22 0" : "M56 81c5 3 13 3 18 0"} fill="none" stroke="#1f2937" strokeWidth="3" strokeLinecap="round" />
+      <path d={happy ? "M97 104c16-10 18-25 11-36" : "M97 104c13-4 17-14 13-25"} fill="none" stroke={shirt} strokeWidth="13" strokeLinecap="round" />
+      <circle cx={happy ? "110" : "109"} cy={happy ? "66" : "80"} r="8" fill={skin} />
+    </svg>
+  );
+}
+
+function HdbCorridor({ stepIndex, happy }: { stepIndex: number; happy: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-sky-100" aria-hidden>
+      <svg viewBox="0 0 800 430" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
+        <rect width="800" height="430" fill="#c9f2f1" />
+        <path d="M0 75h800v248H0z" fill="#f8edda" />
+        <path d="M0 75h800" stroke="#0f766e" strokeWidth="16" />
+        <path d="M0 323h800v107H0z" fill="#a9d7d1" />
+        <path d="M0 323h800" stroke="#7bbeb5" strokeWidth="7" />
+        <path d="M10 94h230v192H10z" fill="#f3d38b" opacity=".55" />
+        <path d="M35 125h150v155H35z" fill="#f4a261" /><path d="M50 140h120v140H50z" fill="#f9c97b" />
+        <circle cx="151" cy="211" r="7" fill="#9a5a28" />
+        <path d="M262 95h192v210H262z" fill="#d5eee9" /><path d="M284 118h148v110H284z" fill="#89c8d0" />
+        <path d="M291 128h62v90M363 128h62v90" stroke="#e8f8f5" strokeWidth="8" />
+        <path d="M478 125h150v155H478z" fill="#0f766e" /><path d="M493 140h120v140H493z" fill="#2cb5aa" />
+        <circle cx="595" cy="211" r="7" fill="#e8c06e" />
+        <path d="M651 101h105v195H651z" fill="#d7d5e2" /><path d="M667 126h73v140H667z" fill="#a1a6b4" />
+        <rect x="745" y="145" width="8" height="22" rx="4" fill="#fbbf24" />
+        <path d="M0 365h800" stroke="#edf7f3" strokeWidth="4" strokeDasharray="10 12" opacity=".85" />
+        <g transform="translate(210 258)"><rect x="0" y="42" width="46" height="35" rx="5" fill="#bf7a3d" /><path d="M5 42c7-40 32-40 38 0" fill="#4f8f58" /><circle cx="18" cy="25" r="14" fill="#4f9c60" /><circle cx="33" cy="25" r="17" fill="#59ad6d" /></g>
+        <g transform="translate(632 266)"><rect x="0" y="42" width="46" height="35" rx="5" fill="#bf7a3d" /><path d="M5 42c7-40 32-40 38 0" fill="#4f8f58" /><circle cx="18" cy="25" r="14" fill="#4f9c60" /><circle cx="33" cy="25" r="17" fill="#59ad6d" /></g>
+      </svg>
+      <div className={`absolute bottom-3 left-[12%] h-36 w-28 transition-transform duration-500 ${happy ? "translate-x-3" : "animate-bob"}`}><Mascot mood={happy ? "cheer" : "wave"} className="h-full w-full" /></div>
+      <div className="absolute bottom-0 right-[11%] h-44 w-32"><NeighbourSprite stepIndex={stepIndex} happy={happy} /></div>
+    </div>
+  );
+}
+
+function SimpleScene({ scenario, stepIndex }: { scenario: Scenario; stepIndex: number }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-gradient-to-b from-sky-200 via-amber-50 to-emerald-200" aria-hidden>
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-emerald-300/70" />
+      <div className="absolute left-[10%] top-12 text-8xl opacity-80">{scenario.scenery[0]}</div>
+      <div className="absolute right-[14%] top-16 text-7xl opacity-80">{scenario.scenery[1]}</div>
+      <div className="absolute bottom-5 left-[15%] h-32 w-24 animate-bob"><Mascot mood="wave" className="h-full w-full" /></div>
+      <div className="absolute bottom-3 right-[14%] h-40 w-28"><NeighbourSprite stepIndex={stepIndex} happy={false} /></div>
+    </div>
+  );
+}
+
 function ScenarioGame({ scenario, onDone }: { scenario: Scenario; onDone: () => void }) {
   const [stepIndex, setStepIndex] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -156,20 +216,16 @@ function ScenarioGame({ scenario, onDone }: { scenario: Scenario; onDone: () => 
         <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-extrabold">❤️❤️❤️ Kindness</span>
       </div>
 
-      <div className="relative min-h-[27rem] px-4 pb-5 pt-4">
-        <span className="absolute left-4 top-3 text-4xl opacity-70" aria-hidden>☁️</span>
-        <span className="absolute right-6 top-10 text-3xl opacity-70" aria-hidden>☁️</span>
-        <div className="relative flex items-center justify-between rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
+      <div className="relative min-h-[32rem] px-4 pb-5 pt-4">
+        {scenario.setting === "HDB corridor" ? <HdbCorridor stepIndex={stepIndex} happy={showReaction} /> : <SimpleScene scenario={scenario} stepIndex={stepIndex} />}
+        <div className="relative flex items-center justify-between rounded-2xl bg-white/85 px-4 py-2 shadow-sm backdrop-blur-sm">
           <span className="text-sm font-black text-violet-950">📍 {scenario.setting}</span>
-          <span className="text-2xl" aria-hidden>{scenario.scenery.join(" ")}</span>
+          <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-extrabold text-violet-900">Look, then choose</span>
         </div>
 
         <div className="relative mx-auto mt-5 max-w-md text-center">
           <p className="text-sm font-extrabold text-violet-900">{step.cue}</p>
-          <div className="mt-3 inline-flex flex-col items-center">
-            <span className={`rounded-full bg-white/90 p-4 text-7xl shadow-xl ring-4 ${showReaction ? "animate-bounce ring-emerald-300" : "ring-white"}`} aria-label={step.characterName}>{step.character}</span>
-            <span className="-mt-2 rounded-full bg-violet-900 px-3 py-1 text-xs font-black text-white shadow">{step.characterName}</span>
-          </div>
+          <span className="mt-4 inline-block rounded-full bg-violet-950 px-4 py-1.5 text-sm font-black text-white shadow">Meet {step.characterName}</span>
           <h3 className="mt-4 font-display text-2xl text-violet-950">{step.question}</h3>
         </div>
 
