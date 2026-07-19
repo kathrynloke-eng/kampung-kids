@@ -8,6 +8,12 @@ import { useI18n } from "@/i18n/provider";
 import type { GrownupRole, RewardItem } from "@/lib/types";
 import { useProgress } from "@/lib/progress";
 
+const treatIcons = [
+  "🎁", "🍦", "🍪", "🧁", "🍫", "🍿", "🍓", "🍉",
+  "🍕", "🍔", "🍟", "🥞", "🧋", "🍹", "🎮", "🎨",
+  "🧸", "📚", "⚽", "🛴", "🎬", "🎢", "🦁", "🌟",
+];
+
 export default function GrownupsPage() {
   const { t, locale } = useI18n();
   const {
@@ -370,7 +376,7 @@ export default function GrownupsPage() {
           ))}
         </ul>
         <form
-          className="mt-3 grid gap-2 sm:grid-cols-[auto_1fr_auto_auto]"
+          className="mt-3 space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             const cost = Number(customCost);
@@ -389,30 +395,50 @@ export default function GrownupsPage() {
             setCustomCost("5");
           }}
         >
-          <input
-            value={customEmoji}
-            onChange={(e) => setCustomEmoji(e.target.value.slice(0, 2))}
-            className="w-14 rounded-xl border border-teal-900/10 px-2 py-2 text-center"
-            aria-label="emoji"
-          />
-          <input
-            value={customTitle}
-            onChange={(e) => setCustomTitle(e.target.value)}
-            placeholder={t("treatName")}
-            className="rounded-xl border border-teal-900/10 px-3 py-2 text-sm"
-          />
-          <input
-            value={customCost}
-            onChange={(e) => setCustomCost(e.target.value.replace(/\D/g, ""))}
-            placeholder={t("treatCost")}
-            className="w-20 rounded-xl border border-teal-900/10 px-3 py-2 text-sm"
-          />
-          <button
-            type="submit"
-            className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-extrabold text-white"
-          >
-            {t("addTreat")}
-          </button>
+          <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-12" aria-label="Choose a treat icon">
+            {treatIcons.map((icon) => (
+              <button
+                key={icon}
+                type="button"
+                onClick={() => setCustomEmoji(icon)}
+                aria-label={`Use ${icon} for this treat`}
+                aria-pressed={customEmoji === icon}
+                className={`flex aspect-square items-center justify-center rounded-xl text-xl transition ${
+                  customEmoji === icon
+                    ? "bg-orange-200 ring-2 ring-orange-500"
+                    : "bg-teal-50 hover:bg-teal-100"
+                }`}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
+          <div className="grid gap-2 sm:grid-cols-[auto_1fr_auto_auto]">
+            <input
+              value={customEmoji}
+              onChange={(e) => setCustomEmoji(e.target.value.slice(0, 2))}
+              className="w-14 rounded-xl border border-teal-900/10 px-2 py-2 text-center"
+              aria-label="Custom emoji"
+            />
+            <input
+              value={customTitle}
+              onChange={(e) => setCustomTitle(e.target.value)}
+              placeholder={t("treatName")}
+              className="rounded-xl border border-teal-900/10 px-3 py-2 text-sm"
+            />
+            <input
+              value={customCost}
+              onChange={(e) => setCustomCost(e.target.value.replace(/\D/g, ""))}
+              placeholder={t("treatCost")}
+              className="w-20 rounded-xl border border-teal-900/10 px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-extrabold text-white"
+            >
+              {t("addTreat")}
+            </button>
+          </div>
         </form>
       </section>
 
