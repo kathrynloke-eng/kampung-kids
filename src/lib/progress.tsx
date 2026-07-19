@@ -184,8 +184,7 @@ type ProgressContextValue = {
           | "errorEmptyProof"
           | "errorAlready"
           | "errorNotFound"
-          | "errorNeedApproveFirst"
-          | "errorPracticedToday";
+          | "errorNeedApproveFirst";
       };
   approveProof: (
     missionId: string,
@@ -504,17 +503,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       }
 
       const today = dateKey();
-      if (
-        state.practiceEntries.some(
-          (e) => e.missionId === input.missionId && e.dateKey === today,
-        )
-      ) {
-        return {
-          ok: false as const,
-          errorKey: "errorPracticedToday" as const,
-        };
-      }
-
       const transcript = (input.transcript ?? "").trim();
       const note = (input.note ?? transcript).trim();
       const drawingDataUrl = input.drawingDataUrl?.startsWith("data:")
@@ -564,7 +552,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
       return { ok: true as const };
     },
-    [state.proofs, state.practiceEntries],
+    [state.proofs],
   );
 
   const approveProof = useCallback(

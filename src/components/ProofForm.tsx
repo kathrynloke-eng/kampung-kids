@@ -1,10 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { DrawPad } from "@/components/DrawPad";
 import { VoiceNarrate } from "@/components/VoiceNarrate";
-import { dateKey } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import type { Mission } from "@/lib/types";
 import { useProgress } from "@/lib/progress";
@@ -129,7 +128,6 @@ export function ProofForm({ mission }: { mission: Mission }) {
   const router = useRouter();
   const { t } = useI18n();
   const {
-    state,
     submitProof,
     logPractice,
     isMissionApproved,
@@ -142,18 +140,11 @@ export function ProofForm({ mission }: { mission: Mission }) {
   const [badgeAwarded, setBadgeAwarded] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
 
-  const practicedThisMissionToday = useMemo(
-    () =>
-      state.practiceEntries.some(
-        (e) => e.missionId === mission.id && e.dateKey === dateKey(),
-      ),
-    [state.practiceEntries, mission.id],
-  );
   const completionCount = missionCompletionCount(mission.id);
   const hasMissionBadge = hasBadge(mission.badgeId);
 
   if (isMissionApproved(mission.id)) {
-    if (practiceDone || practicedThisMissionToday) {
+    if (practiceDone) {
       return (
         <div className="animate-pop space-y-3 overflow-hidden rounded-[2rem] bg-gradient-to-br from-teal-500 to-cyan-700 p-6 text-white shadow-xl shadow-teal-700/30">
           <p className="text-sm font-extrabold uppercase tracking-[0.18em] text-teal-100">
@@ -163,13 +154,26 @@ export function ProofForm({ mission }: { mission: Mission }) {
           <p className="font-semibold text-teal-50">
             {badgeAwarded ? t("badgeBonusStars", { stars: 5 }) : t("practiceBonusStar")}
           </p>
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="kid-btn mt-2 bg-white text-sm text-teal-800"
-          >
-            {t("practiceBackHome")}
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => {
+                setPracticeDone(false);
+                setBadgeAwarded(false);
+                setShowPractice(true);
+              }}
+              className="kid-btn kid-btn-primary text-sm"
+            >
+              {t("practiceAgain")}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="kid-btn bg-white text-sm text-teal-800"
+            >
+              {t("practiceBackHome")}
+            </button>
+          </div>
         </div>
       );
     }
